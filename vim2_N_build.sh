@@ -17,10 +17,11 @@ echo "     sudo tar xvf gcc-linaro-arm-linux-gnueabihf.tar.gz -C /opt/toolchains
 echo "     sudo tar xvf CodeSourcery.tar.gz -C /opt/toolchains"
 echo "2. put TOOLSENV.sh inside src folder of synced khadas: wget http://openlinux.amlogic.com:8000/deploy/TOOLSENV.sh"
 echo "3. update TOOLSENV.sh to match installed versions of libraries"
+echo "4. To be uptodate with khadas sources run repo sync before build"
 echo "-------------------------------------------------------------------------------------------------------------------"
 echo ""
 
-read -p "Press any key to continue... "
+read -p "Press enter key to continue... "
 
 # enter to the root folder of synced sources of khadas
 cd ~/khadas
