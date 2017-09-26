@@ -2,46 +2,65 @@
 
 clear
 
-echo "Simple script to automate build of Android Nougat (7.1.x) for VIM2 on linux box"
-echo ""
-echo "-------------------------------------------------------------------------------------------------------------------"
-echo "How to use it:"
-echo "1. follow initial documentation on http://docs.khadas.com/develop/DownloadAndroidSourceCode/"
-echo "2. download amlogic dev libs from http://openlinux.amlogic.com:8000/deploy/ and install them inside /opt/toolchains"
-echo "   by running: "
-echo "     (notice - change version numbers to match one downloaded)" 
-echo "     sudo tar xvf gcc-linaro-aarch64-linux-gnu-4.9-2014.09_linux.tar -C /opt/toolchains"
-echo "     sudo tar xvf gcc-linaro-aarch64-none-elf-4.8-2013.11_linux.tar.bz2 -C /opt/toolchains"
-echo "     sudo tar xvf arc-4.8-amlogic-20130904-r2.tar.gz -C /opt/toolchains"
-echo "     sudo tar xvf gcc-linaro-arm-linux-gnueabihf.tar.gz -C /opt/toolchains"
-echo "     sudo tar xvf CodeSourcery.tar.gz -C /opt/toolchains"
-echo "2. put TOOLSENV.sh inside src folder of synced khadas: wget http://openlinux.amlogic.com:8000/deploy/TOOLSENV.sh"
-echo "3. update TOOLSENV.sh to match installed versions of libraries"
-echo "4. To be uptodate with khadas sources run repo sync before build"
-echo "-------------------------------------------------------------------------------------------------------------------"
-echo ""
+echo -e "\nSimple script to automate build of Android Nougat (7.1.x) for VIM2 on linux box"
+echo -e "\n"
+echo -e "\n-------------------------------------------------------------------------------------------------------------------"
+echo -e "\nHow to use it:"
+echo -e "\n1. follow initial documentation on http://docs.khadas.com/develop/DownloadAndroidSourceCode/"
+echo -e "\n2. download amlogic dev libs from http://openlinux.amlogic.com:8000/deploy/ and install them inside /opt/toolchains"
+echo -e "\n   by running: "
+echo -e "\n     (notice - change version numbers to match one downloaded)" 
+echo -e "\n     sudo tar xvf gcc-linaro-aarch64-linux-gnu-4.9-2014.09_linux.tar -C /opt/toolchains"
+echo -e "\n     sudo tar xvf gcc-linaro-aarch64-none-elf-4.8-2013.11_linux.tar.bz2 -C /opt/toolchains"
+echo -e "\n     sudo tar xvf arc-4.8-amlogic-20130904-r2.tar.gz -C /opt/toolchains"
+echo -e "\n     sudo tar xvf gcc-linaro-arm-linux-gnueabihf.tar.gz -C /opt/toolchains"
+echo -e "\n     sudo tar xvf CodeSourcery.tar.gz -C /opt/toolchains"
+echo -e "\n2. put TOOLSENV.sh inside src folder of synced khadas: wget http://openlinux.amlogic.com:8000/deploy/TOOLSENV.sh"
+echo -e "\n3. update TOOLSENV.sh to match installed versions of libraries"
+echo -e "\n4. To be uptodate with khadas sources run repo sync before build"
+echo -e "\n-------------------------------------------------------------------------------------------------------------------"
+echo -e "\n"
 
-read -p "Press enter key to continue... "
+read -p "\nPress enter key to continue... "
 
 # enter to the root folder of synced sources of khadas
 cd ~/khadas
 
+# frst thing first, sync sources
+echo -e "\nrepo sync sources"
+repo sync --force-sync -c
+
 # let's setup toolchain environment variables
+echo -e "\nSet toolchain variables"
 source TOOLSENV.sh
 
+# let's setup build variables
+echo -e "\nSet build environment"
+source build/envsetup.sh
+
+# option to make installclean before build to cleanup sources
+# comment it ut if you don't want to make installclean
+echo -e "\nlet's make installclean build"
+make installclean
+
 # let's build U-BOOT stuff needed by main build
+echo -e "\nbuild U-BOOT stuff for Nougat"
 cd ~/khadas/uboot
+echo -e "\ncheckout Nougat branch"
+git checkout Nougat
+echo -e "\nBuild U-BOOT"
 make CROSS_COMPILE=aarch64-linux-gnu- kvim2_defconfig
 make CROSS_COMPILE=aarch64-linux-gnu-
 
-
+echo -e "\nEntering kahadas root folder before build"
 cd ~/khadas
 
-# let's setup build variables
-source build/envsetup.sh
-
 # depending of build type you can change here user or eng build, eg. kvim2-user-64
+echo -e "\nwe are doing kvim2-userdebug-64"
 lunch kvim2-userdebug-64
 
 # lets build: N is how many threads your build linux box is gonna use
+echo -e "\nStart build!"
 make -j4 otapackage
+
+echo -e "\Build FINISHED!"
