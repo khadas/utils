@@ -15,9 +15,8 @@ echo -e "\n     sudo tar xvf gcc-linaro-aarch64-none-elf-4.8-2013.11_linux.tar.b
 echo -e "\n     sudo tar xvf arc-4.8-amlogic-20130904-r2.tar.gz -C /opt/toolchains"
 echo -e "\n     sudo tar xvf gcc-linaro-arm-linux-gnueabihf.tar.gz -C /opt/toolchains"
 echo -e "\n     sudo tar xvf CodeSourcery.tar.gz -C /opt/toolchains"
-echo -e "\n2. put TOOLSENV.sh inside src folder of synced khadas: wget http://openlinux.amlogic.com:8000/deploy/TOOLSENV.sh"
-echo -e "\n3. update TOOLSENV.sh to match installed versions of libraries"
-echo -e "\n4. To be uptodate with khadas sources run repo sync before build"
+echo -e "\n3. put TOOLSENV.sh inside src folder of synced khadas: wget http://openlinux.amlogic.com:8000/deploy/TOOLSENV.sh"
+echo -e "\n4. update TOOLSENV.sh to match installed versions of libraries"
 echo -e "\n-------------------------------------------------------------------------------------------------------------------"
 echo -e "\n"
 
@@ -63,4 +62,13 @@ lunch kvim2-userdebug-64
 echo -e "\nStart build!"
 make -j4 otapackage
 
-echo -e "\Build FINISHED!"
+echo -e "\nBuild FINISHED!"
+
+# additional 
+# lets build update.img
+# 1. create folder images inside khadas root (that's how I did it you can always choose different location)
+# 2. git clone https://github.com/khadas/utils into ~/khadas/utils
+# 3. create symlink to out/target/product/kvim2/upgrade/ in ~/khadas/upgrade
+# 4. uncomment rest of the lines ;-)
+#echo -e "\nLet's build update.img"
+#./utils/aml_image_v2_packer -r upgrade/aml_upgrade_package.conf upgrade/ images/update.img
