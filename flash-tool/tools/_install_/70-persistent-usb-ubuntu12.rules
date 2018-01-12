@@ -1,0 +1,2 @@
+SUBSYSTEMS=="usb",ATTRS{idVendor}=="1b8e",ATTRS{idProduct}=="c003",OWNER="amlogic",MODE="0666",SYMLINK+="worldcup"
+

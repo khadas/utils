@@ -1,0 +1,4 @@
+
+# If not work, reference /lib/udev/rules.d/50-udev-default.rules with keyword 'SUBSYSTEM=="usb"'
+
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="1b8e", ATTR{idProduct}=="c003", MODE:="0666"
