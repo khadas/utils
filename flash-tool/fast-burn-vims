@@ -1,0 +1,16 @@
+#!/bin/bash
+
+FLASH_TOOL="$(pwd)/flash-tool"
+
+if [ -z "$1" ]; then
+	echo "Usage: $0 <image-path>"
+	exit 1
+fi
+
+if [ ! -f "$1" ]; then
+	echo "image file '$1' doesn't exist!"
+	exit 1
+fi
+
+$FLASH_TOOL --img=$1 --parts=all --wipe --soc=gxl
+
