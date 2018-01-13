@@ -2,7 +2,7 @@
 
 set -e -o pipefail
 
-FLASH_TOOL="@FLASH_TOOL@"
+FLASH_TOOL="$(dirname "$(readlink -fm "$0")")/flash-tool"
 KHADAS_TOOL="/usr/local/bin/$(basename $0)"
 
 RED='\033[0;31m'
@@ -12,8 +12,8 @@ error_msg() {
 	echo -e "$RED"ERROR:"$RESET" $1
 }
 
-if [ ! -f $KHADAS_TOOL ]; then
-	error_msg "Please install `basename $0`. Enter 'flash-tool' directory and execute './INSTALL' to install it."
+if [ ! -L $KHADAS_TOOL ]; then
+	error_msg "Please install `basename $0`. Execute 'INSTALL' script to install it."
 	exit 1
 fi
 

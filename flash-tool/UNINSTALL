@@ -2,7 +2,7 @@
 
 set -e -o pipefail
 
-BASE=$(pwd)
+BASE=$(dirname "$(readlink -fm "$0")")
 DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
 DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
 KHADAS_TOOL_NAME="fast-burn-vims"
@@ -16,11 +16,6 @@ RESET='\033[m'
 error_msg() {
 	echo -e ${RED}Error:${RESET} $1
 }
-
-if [ ! -f UNINSTALL ]; then
-	error_msg "Please enter flash-tool directory and execute ./UNINSTALL !"
-	exit 1
-fi
 
 echo ""
 echo "==============================================="

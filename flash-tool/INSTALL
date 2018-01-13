@@ -2,7 +2,7 @@
 
 set -e -o pipefail
 
-BASE=$(pwd)
+BASE=$(dirname "$(readlink -fm "$0")")
 FLASH_TOOL="$BASE/flash-tool"
 KHADAS_TOOL="$BASE/fast-burn-vims"
 RULES_DIR="$BASE/rules"
@@ -27,11 +27,6 @@ error_msg() {
 	echo -e ${RED}Error:${RESET} $1
 }
 
-if [ ! -f INSTALL ]; then
-	error_msg "Please enter flash-tool directory and execute ./INSTALL !"
-	exit 1
-fi
-
 if [ "$DISTRIB" != "Ubuntu" ]; then
 	error_msg "This flash tool just support Ubuntu now, other distributions haven't been verified!"
 	exit 1
@@ -55,7 +50,6 @@ sudo udevadm control --reload-rules
 
 echo "Install flash-tool..."
 mkdir -p $INSTALL_DIR
-sudo cp $KHADAS_TOOL $INSTALL_DIR
-sudo sed -i -e "s|@FLASH_TOOL@|$FLASH_TOOL|" $INSTALL_DIR/$(basename $KHADAS_TOOL)
+sudo ln -fs $KHADAS_TOOL $INSTALL_DIR/$(basename $KHADAS_TOOL)
 
 echo "Done!"
