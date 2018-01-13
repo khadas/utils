@@ -1,9 +1,24 @@
 #!/bin/bash
 
-FLASH_TOOL="$(pwd)/flash-tool"
+set -e -o pipefail
+
+FLASH_TOOL="@FLASH_TOOL@"
+KHADAS_TOOL="/usr/local/bin/$(basename $0)"
+
+RED='\033[0;31m'
+RESET='\033[m'
+
+error_msg() {
+	echo -e "$RED"ERROR:"$RESET" $1
+}
+
+if [ ! -f $KHADAS_TOOL ]; then
+	error_msg "Please install `basename $0`. Enter 'flash-tool' directory and execute './INSTALL' to install it."
+	exit 1
+fi
 
 if [ -z "$1" ]; then
-	echo "Usage: $0 <image-path>"
+	echo "Usage: `basename $0` <image-path>"
 	exit 1
 fi
 
