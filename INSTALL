@@ -1,0 +1,28 @@
+#!/bin/bash
+
+set -e -o pipefail
+
+BASE=$(dirname "$(readlink -fm "$0")")
+AML_FLASH_TOOL_DIR="$BASE/aml-flash-tool"
+RK_FLASH_TOOL_DIR="$BASE/rk-flash-tool"
+AML_BURN_TOOL="$AML_FLASH_TOOL_DIR/aml-burn-tool"
+RK_BURN_TOOL="$RK_FLASH_TOOL_DIR/rk-burn-tool"
+KHADAS_BURN_TOOL="$BASE/burn-tool"
+INSTALL_DIR="/usr/local/bin"
+
+RED='\033[0;31m'
+RESET='\033[m'
+
+error_msg() {
+	echo -e ${RED}Error:${RESET} $1
+}
+
+echo -e "Installing Amlogic flash-tool..."
+$AML_FLASH_TOOL_DIR/INSTALL
+echo -e "\nInstalling Rockchip flash-tool..."
+$RK_FLASH_TOOL_DIR/INSTALL
+echo -e "Installing Khadas burn-tool..."
+mkdir -p $INSTALL_DIR
+sudo ln -fs $KHADAS_BURN_TOOL $INSTALL_DIR/$(basename $KHADAS_BURN_TOOL)
+
+echo "Done!"

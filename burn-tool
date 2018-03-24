@@ -1,0 +1,65 @@
+#!/bin/bash
+
+set -e -o pipefail
+
+BASE=$(dirname "$(readlink -fm "$0")")
+AML_BURN_TOOL="$BASE/aml-flash-tool/aml-burn-tool"
+RK_BURN_TOOL="$BASE/rk-flash-tool/rk-burn-tool"
+KHADAS_BURN_TOOL="/usr/local/bin/$(basename $0)"
+
+IMAGE=
+VENDER=
+
+RED='\033[0;31m'
+RESET='\033[m'
+
+error_msg() {
+	echo -e "$RED"ERROR:"$RESET" $1
+}
+
+usage() {
+	echo -e "Usage:"
+	echo -e "Burn VIMs image: $0 [-v aml] -i <path-to-image>"
+	echo -e "Burn Edge:       $0 -v rk -i <path-to-image>"
+}
+
+if [ ! -L $KHADAS_BURN_TOOL ]; then
+	error_msg "Please install `basename $0`. Execute 'INSTALL' script to install it."
+	exit 1
+fi
+
+while getopts "v:i:h" flag; do
+	case $flag in
+		v)
+		VENDER="$OPTARG"
+		;;
+		i)
+		IMAGE="$OPTARG"
+		;;
+		h)
+		usage
+		exit
+		;;
+	esac
+done
+
+if [ ! -f "$IMAGE" ]; then
+	error_msg "Image '$IMAGE' doesn't exist!"
+	usage
+	exit -1
+fi
+
+# Default VENDER amlogic
+VENDER=${VENDER:-aml}
+
+if [ "$VENDER" == "rk" ]; then
+	echo "Try to burn Rockchip image..."
+	$RK_BURN_TOOL -i $IMAGE
+elif [ "$VENDER" == "aml" ]; then
+	echo "Try to burn Amlogic image..."
+	$AML_BURN_TOOL -i $IMAGE
+else
+	error_msg "Unsupported vender: '$VENDER'!"
+	usage
+	exit -1
+fi

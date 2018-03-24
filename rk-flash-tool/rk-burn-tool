@@ -1,0 +1,80 @@
+#!/bin/bash
+
+set -e -o pipefail
+
+BASE=$(dirname "$(readlink -fm "$0")")
+FLASH_TOOL="$BASE/flash-tool"
+ANDROID_TOOL="$BASE/tools/Linux_Upgrade_Tool_1.27/upgrade_tool"
+KHADAS_TOOL="/usr/local/bin/$(basename $0)"
+
+DEVICE=
+IMAGE=
+
+RED='\033[0;31m'
+RESET='\033[m'
+
+error_msg() {
+	echo -e "$RED"ERROR:"$RESET" $1
+}
+
+usage() {
+	echo -e "Usage:"
+	echo -e "Burn to eMMC: $0 -i <path-to-image>"
+	echo -e "Burn to SD/USB: $0 -d </dev/sdX> -i <path-to-image>"
+}
+
+if [ ! -L $KHADAS_TOOL ]; then
+	error_msg "Please install `basename $0`. Execute 'INSTALL' script to install it."
+	exit 1
+fi
+
+while getopts "d:i:h" flag; do
+    case $flag in
+		d)
+		DEVICE="$OPTARG"
+		if [ ! -b "$DEVICE" ]; then
+			error_msg "Device '$DEVICE' doesn't exist!"
+			usage
+			exit -1
+		fi
+		;;
+		i)
+		IMAGE="$OPTARG"
+		;;
+		h)
+		usage
+		exit
+		;;
+	esac
+done
+
+if [ ! -f "$IMAGE" ]; then
+	error_msg "Image file '$IMAGE' doesn't exist!"
+	usage
+	exit 1
+fi
+
+if parted -s "$IMAGE" p 2> /dev/null | grep -q rootfs 2> /dev/null; then
+	echo "Rockchip Linux image with GPT found!"
+	IMAGE_TYPE="Linux"
+else
+	echo "Rockchip Android image found!"
+	IMAGE_TYPE="Android"
+fi
+
+if [ "$IMAGE_TYPE" == "Linux" ]; then
+	echo "Try to burn Rockchip Linux image..."
+	if [ -n "$DEVICE" ]; then
+		echo "Burn to SD/USB: '$DEVICE'..."
+		$FLASH_TOOL -c rk3399 -d $DEVICE -p system -i $IMAGE
+	else
+		echo "Burn to eMMC..."
+		$FLASH_TOOL -c rk3399 -p system -i $IMAGE
+	fi
+elif [ "$IMAGE_TYPE" == "Android" ]; then
+	echo "Try to burn Rockchip Android image..."
+	$ANDROID_TOOL UF "$IMAGE"
+fi
+
+echo "Done!"
+

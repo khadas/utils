@@ -4,7 +4,7 @@ set -e -o pipefail
 
 BASE=$(dirname "$(readlink -fm "$0")")
 FLASH_TOOL="$BASE/flash-tool"
-KHADAS_TOOL="$BASE/burn-tool"
+KHADAS_TOOL="$BASE/aml-burn-tool"
 RULES_DIR="$BASE/rules"
 DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
 DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
@@ -32,7 +32,7 @@ if [ "$DISTRIB" != "Ubuntu" ]; then
 	exit 1
 fi
 
-echo "Install USB rules..."
+echo "Installing USB rules..."
 
 if [[ "$DISTRIB_RELEASE" =~ "12" ]]; then
 	RULE="$RULES_DIR/70-persistent-usb-ubuntu12.rules"
@@ -48,7 +48,7 @@ fi
 
 sudo udevadm control --reload-rules
 
-echo "Install flash-tool..."
+echo "Installing flash-tool..."
 mkdir -p $INSTALL_DIR
 sudo ln -fs $KHADAS_TOOL $INSTALL_DIR/$(basename $KHADAS_TOOL)
 

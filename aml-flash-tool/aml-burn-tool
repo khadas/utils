@@ -5,6 +5,8 @@ set -e -o pipefail
 FLASH_TOOL="$(dirname "$(readlink -fm "$0")")/flash-tool"
 KHADAS_TOOL="/usr/local/bin/$(basename $0)"
 
+IMAGE=
+
 RED='\033[0;31m'
 RESET='\033[m'
 
@@ -12,20 +14,33 @@ error_msg() {
 	echo -e "$RED"ERROR:"$RESET" $1
 }
 
+usage() {
+	echo -e "Usage:"
+	echo -e "$0 -i <path-to-image>"
+}
+
 if [ ! -L $KHADAS_TOOL ]; then
 	error_msg "Please install `basename $0`. Execute 'INSTALL' script to install it."
 	exit 1
 fi
 
-if [ -z "$1" ]; then
-	echo "Usage: `basename $0` <image-path>"
-	exit 1
+while getopts "i:h" flag; do
+	case $flag in
+		i)
+		IMAGE="$OPTARG"
+		;;
+		h)
+		usage
+		exit
+		;;
+	esac
+done
+
+if [ ! -f "$IMAGE" ]; then
+	error_msg "Image '$IMAGE' doesn't exist!"
+	usage
+	exit -1
 fi
 
-if [ ! -f "$1" ]; then
-	echo "image file '$1' doesn't exist!"
-	exit 1
-fi
-
-$FLASH_TOOL --img=$1 --parts=all --wipe --soc=gxl
+$FLASH_TOOL --img=$IMAGE --parts=all --wipe --soc=gxl
 
