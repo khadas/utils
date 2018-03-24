@@ -5,7 +5,7 @@ set -e -o pipefail
 BASE=$(dirname "$(readlink -fm "$0")")
 DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
 DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
-KHADAS_TOOL_NAME="fast-burn-vims"
+KHADAS_TOOL_NAME="burn-tool"
 INSTALL_DIR="/usr/local/bin"
 
 RULE=

@@ -4,7 +4,7 @@ set -e -o pipefail
 
 BASE=$(dirname "$(readlink -fm "$0")")
 FLASH_TOOL="$BASE/flash-tool"
-KHADAS_TOOL="$BASE/fast-burn-vims"
+KHADAS_TOOL="$BASE/burn-tool"
 RULES_DIR="$BASE/rules"
 DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
 DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
