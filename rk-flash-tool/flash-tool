@@ -1,7 +1,9 @@
 #!/bin/bash -e
 
 LOCALPATH=$(dirname "$(readlink -fm "$0")")
-TOOLPATH=${LOCALPATH}/tools
+TOOLPATH=${LOCALPATH}/tools/Linux_Upgrade_Tool_v1.33/
+LOADER="${LOCALPATH}/bin/rk33/rk3399_loader_v1.09.112.bin"
+PARAMETER="${LOCALPATH}/parameter_gpt_linux.txt"
 CHIP=""
 DEVICE=""
 IMAGE=""
@@ -63,23 +65,20 @@ if [ ! $IMAGE ]; then
 fi
 
 flash_upgt() {
-	if [ "${CHIP}" == "rk3288" ]; then
-		$TOOLPATH/rkdeveloptool db ${LOCALPATH}/bin/rk32/rk3288_ubootloader_*.bin
-	elif [ "${CHIP}" == "rk322x" ]; then
-		$TOOLPATH/rkdeveloptool db ${LOCALPATH}/bin/rk32/rk322x_loader_*.bin
-	elif [ "${CHIP}" == "rk3036" ]; then
-		$TOOLPATH/rkdeveloptool db ${LOCALPATH}/bin/rk30/rk3036_loader_*.bin
-	elif [ "${CHIP}" == "rk3399" ]; then
-		$TOOLPATH/rkdeveloptool db ${LOCALPATH}/bin/rk33/rk3399_loader_*.bin
-	elif [ "${CHIP}" == "rk3328" ]; then
-		$TOOLPATH/rkdeveloptool db ${LOCALPATH}/bin/rk33/rk3328_loader_*.bin
-	fi
+
+	# Burn loader
+	$TOOLPATH/upgrade_tool ul $LOADER
 
 	sleep 1
 
-	$TOOLPATH/rkdeveloptool wl ${SEEK} ${IMAGE}
+	# Burn image
+	$TOOLPATH/upgrade_tool wl ${SEEK} ${IMAGE}
 
-	$TOOLPATH/rkdeveloptool rd
+	# Burn GPT
+	$TOOLPATH/upgrade_tool di -p $PARAMETER
+
+	# Reset
+	$TOOLPATH/upgrade_tool rd
 }
 
 flash_sdcard() {
