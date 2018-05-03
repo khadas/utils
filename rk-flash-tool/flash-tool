@@ -2,7 +2,7 @@
 
 LOCALPATH=$(dirname "$(readlink -fm "$0")")
 TOOLPATH=${LOCALPATH}/tools/Linux_Upgrade_Tool_v1.33/
-LOADER="${LOCALPATH}/bin/rk33/rk3399_loader_v1.09.112.bin"
+LOADER="${LOCALPATH}/bin/rk33/rk3399_loader_v1.10.112.bin"
 PARAMETER="${LOCALPATH}/parameter_gpt_linux.txt"
 CHIP=""
 DEVICE=""
