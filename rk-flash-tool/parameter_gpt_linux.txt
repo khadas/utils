@@ -12,5 +12,5 @@ PWR_HLD: 0,0,A,0,1
 #RECOVER_KEY: 1,1,0,20,0
 #in section; per section 512(0x200) bytes
 TYPE: GPT
-CMDLINE:mtdparts=rk29xxnand:0x00001f80@0x00000040(loader1),0x00002000@0x00004000(uboot),0x00002000@0x00006000(trust),0x00038000@0x00008000(kernel:bootable),-@0x00040000(rootfs:bootable:grow)
+CMDLINE:mtdparts=rk29xxnand:0x00001f80@0x00000040(loader1),0x00002000@0x00004000(uboot),0x00002000@0x00006000(trust),0x00002000@0x00008000(misc),0x00008000@0x0000A000(resource),0x0002E000@0x00012000(kernel:bootable),-@0x00040000(rootfs:bootable:grow)
 uuid:rootfs=614e0000-0000-4b53-8000-1d28000054a9
