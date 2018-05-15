@@ -71,10 +71,19 @@ flash_upgt() {
 
 	sleep 1
 
+	# Erase u-boot environment partition
+	# FIXME
+	dd if=/dev/zero of=raw.bin bs=1K count=0 seek=1
+	echo "Erasing u-boot environment partition..."
+	$TOOLPATH/upgrade_tool wl 8128 raw.bin
+	rm raw.bin
+
 	# Burn image
+	echo "Burning image..."
 	$TOOLPATH/upgrade_tool wl ${SEEK} ${IMAGE}
 
 	# Burn GPT
+	echo "Burning GPT..."
 	$TOOLPATH/upgrade_tool di -p $PARAMETER
 
 	# Reset
