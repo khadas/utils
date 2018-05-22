@@ -42,5 +42,5 @@ if [ ! -f "$IMAGE" ]; then
 	exit -1
 fi
 
-$FLASH_TOOL --img=$IMAGE --parts=all --wipe --soc=gxl
+$FLASH_TOOL --img=$IMAGE --parts=all --wipe --soc=gxl --reset=y
 
