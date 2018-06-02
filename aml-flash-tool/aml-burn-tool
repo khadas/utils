@@ -6,6 +6,7 @@ FLASH_TOOL="$(dirname "$(readlink -fm "$0")")/flash-tool"
 KHADAS_TOOL="/usr/local/bin/$(basename $0)"
 
 IMAGE=
+DEVICE=
 
 RED='\033[0;31m'
 RESET='\033[m'
@@ -16,7 +17,14 @@ error_msg() {
 
 usage() {
 	echo -e "Usage:"
-	echo -e "$0 -i <path-to-image>"
+	echo -e "emmc:   $0 -i <path-to-image>"
+	echo -e "sdcard: $0 -d </dev/sdX> -i <path-to-image>"
+}
+
+flash_sdcard() {
+	pv -tpreb ${IMAGE} | sudo dd of=${DEVICE} conv=notrunc
+	echo "Sync..."
+	sync
 }
 
 if [ ! -L $KHADAS_TOOL ]; then
@@ -24,8 +32,11 @@ if [ ! -L $KHADAS_TOOL ]; then
 	exit 1
 fi
 
-while getopts "i:h" flag; do
+while getopts "d:i:h" flag; do
 	case $flag in
+		d)
+		DEVICE="$OPTARG"
+		;;
 		i)
 		IMAGE="$OPTARG"
 		;;
@@ -42,5 +53,10 @@ if [ ! -f "$IMAGE" ]; then
 	exit -1
 fi
 
-$FLASH_TOOL --img=$IMAGE --parts=all --wipe --soc=gxl --reset=y
-
+if [ $DEVICE ]; then
+	echo "Burning image '$IMAGE' to SD/USB storage..."
+	flash_sdcard
+else
+	echo "Burnimg image '$IMAGE' to eMMC..."
+	$FLASH_TOOL --img=$IMAGE --parts=all --wipe --soc=gxl --reset=y
+fi
