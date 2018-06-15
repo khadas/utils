@@ -65,6 +65,11 @@ fi
 if [ "$IMAGE_TYPE" == "Linux" ]; then
 	echo "Try to burn Rockchip Linux image..."
 	if [ -n "$DEVICE" ]; then
+		if [ ! -b $DEVICE ]; then
+			error_msg "'$DEVICE' is not a block device! Please make sure the device you choose is right."
+			exit -1
+		fi
+
 		echo "Burn to SD/USB: '$DEVICE'..."
 		$FLASH_TOOL -c rk3399 -d $DEVICE -p system -i $IMAGE
 	else
