@@ -54,6 +54,11 @@ if [ ! -f "$IMAGE" ]; then
 fi
 
 if [ $DEVICE ]; then
+	if [ ! -b $DEVICE ]; then
+		error_msg "'$DEVICE' is not a block device! Please make sure the device you choose is right."
+		exit -1
+	fi
+
 	echo "Burning image '$IMAGE' to SD/USB storage..."
 	flash_sdcard
 else
