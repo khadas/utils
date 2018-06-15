@@ -58,7 +58,7 @@ if parted -s "$IMAGE" p 2> /dev/null | grep -q rootfs 2> /dev/null; then
 	echo "Rockchip Linux image with GPT found!"
 	IMAGE_TYPE="Linux"
 else
-	echo "Rockchip Android image found!"
+	echo "Rockchip Android image (or linux image compatible with AndroidTool one image burning) found!"
 	IMAGE_TYPE="Android"
 fi
 
@@ -72,7 +72,7 @@ if [ "$IMAGE_TYPE" == "Linux" ]; then
 		$FLASH_TOOL -c rk3399 -p system -i $IMAGE
 	fi
 elif [ "$IMAGE_TYPE" == "Android" ]; then
-	echo "Try to burn Rockchip Android image..."
+	echo "Try to burn Rockchip image..."
 	$ANDROID_TOOL UF "$IMAGE"
 fi
 
