@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 LOCALPATH=$(dirname "$(readlink -fm "$0")")
-TOOLPATH=${LOCALPATH}/tools/Linux_Upgrade_Tool_v1.33/
+TOOLPATH=${LOCALPATH}/tools/Linux_Upgrade_Tool_v1.34/
 LOADER="${LOCALPATH}/bin/rk33/MiniLoaderAll.bin"
 PARAMETER="${LOCALPATH}/parameter_gpt_linux.txt"
 CHIP=""
