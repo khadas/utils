@@ -62,6 +62,6 @@ if [ $DEVICE ]; then
 	echo "Burning image '$IMAGE' to SD/USB storage..."
 	flash_sdcard
 else
-	echo "Burnimg image '$IMAGE' to eMMC..."
+	echo "Burning image '$IMAGE' to eMMC..."
 	$FLASH_TOOL --img=$IMAGE --parts=all --wipe --soc=gxl --reset=y
 fi
