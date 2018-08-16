@@ -6,6 +6,7 @@ BASE=$(dirname "$(readlink -fm "$0")")
 DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
 DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
 KHADAS_TOOL_NAME="rk-burn-tool"
+ANDROID_TOOL_CONFIG="$BASE/tools/Linux_Upgrade_Tool_v1.34/config.ini"
 INSTALL_DIR="/usr/local/bin"
 
 RULE=
@@ -44,5 +45,10 @@ sudo udevadm control --reload-rules
 
 echo "Removing flash-tool..."
 sudo rm -f $INSTALL_DIR/$KHADAS_TOOL_NAME
+
+echo "Removing configuration..."
+if [ -d ~/.config/upgrade_tool ]; then
+	rm -r ~/.config/upgrade_tool
+fi
 
 echo "Done!"

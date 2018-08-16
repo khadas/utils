@@ -4,6 +4,7 @@ set -e -o pipefail
 
 BASE=$(dirname "$(readlink -fm "$0")")
 FLASH_TOOL="$BASE/flash-tool"
+ANDROID_TOOL_CONFIG="$BASE/tools/Linux_Upgrade_Tool_v1.34/config.ini"
 KHADAS_TOOL="$BASE/rk-burn-tool"
 RULES_DIR="$BASE/rules"
 DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
@@ -47,5 +48,10 @@ sudo udevadm control --reload-rules
 echo "Installing flash-tool..."
 mkdir -p $INSTALL_DIR
 sudo ln -fs $KHADAS_TOOL $INSTALL_DIR/$(basename $KHADAS_TOOL)
+
+# Install configuration for Linux_Upgrade_Tool
+echo "Installing configuration..."
+mkdir -p ~/.config/upgrade_tool
+cp $ANDROID_TOOL_CONFIG ~/.config/upgrade_tool/
 
 echo "Done!"
