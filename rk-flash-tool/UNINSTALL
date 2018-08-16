@@ -6,7 +6,7 @@ BASE=$(dirname "$(readlink -fm "$0")")
 DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
 DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
 KHADAS_TOOL_NAME="rk-burn-tool"
-ANDROID_TOOL_CONFIG="$BASE/tools/Linux_Upgrade_Tool_v1.34/config.ini"
+ANDROID_TOOL_CONFIG="$BASE/tools/Linux_Upgrade_Tool/config.ini"
 INSTALL_DIR="/usr/local/bin"
 
 RULE=

@@ -4,7 +4,7 @@ set -e -o pipefail
 
 BASE=$(dirname "$(readlink -fm "$0")")
 FLASH_TOOL="$BASE/flash-tool"
-ANDROID_TOOL="$BASE/tools/Linux_Upgrade_Tool_v1.34/upgrade_tool"
+ANDROID_TOOL="$BASE/tools/Linux_Upgrade_Tool/upgrade_tool"
 KHADAS_TOOL="/usr/local/bin/$(basename $0)"
 
 DEVICE=
