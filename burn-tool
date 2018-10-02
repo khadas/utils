@@ -54,10 +54,10 @@ VENDER=${VENDER:-aml}
 
 if [ "$VENDER" == "rk" ]; then
 	echo "Try to burn Rockchip image..."
-	$RK_BURN_TOOL -i $IMAGE
+	$RK_BURN_TOOL -i "$IMAGE"
 elif [ "$VENDER" == "aml" ]; then
 	echo "Try to burn Amlogic image..."
-	$AML_BURN_TOOL -i $IMAGE
+	$AML_BURN_TOOL -i "$IMAGE"
 else
 	error_msg "Unsupported vender: '$VENDER'!"
 	usage
