@@ -54,31 +54,32 @@ if [ ! -f "$IMAGE" ]; then
 	exit 1
 fi
 
-if parted -s "$IMAGE" p 2> /dev/null | grep -q rootfs 2> /dev/null; then
-	echo "Rockchip Linux image with GPT found!"
-	IMAGE_TYPE="Linux"
-else
-	echo "Rockchip Android image (or linux image compatible with AndroidTool one image burning) found!"
-	IMAGE_TYPE="Android"
-fi
-
-if [ "$IMAGE_TYPE" == "Linux" ]; then
-	echo "Try to burn Rockchip Linux image..."
-	if [ -n "$DEVICE" ]; then
-		if [ ! -b $DEVICE ]; then
-			error_msg "'$DEVICE' is not a block device! Please make sure the device you choose is right."
-			exit -1
-		fi
-
-		echo "Burn to SD/USB: '$DEVICE'..."
-		$FLASH_TOOL -c rk3399 -d $DEVICE -p system -i $IMAGE
-	else
-		echo "Burn to eMMC..."
-		$FLASH_TOOL -c rk3399 -p system -i $IMAGE
+if [ -n "$DEVICE" ]; then
+	if [ ! -b $DEVICE ]; then
+		error_msg "'$DEVICE' is not a block device! Please make sure the device you choose is right."
+		exit -1
 	fi
-elif [ "$IMAGE_TYPE" == "Android" ]; then
-	echo "Try to burn Rockchip image..."
-	$ANDROID_TOOL UF "$IMAGE"
+
+	echo "Burn to SD/USB: '$DEVICE'..."
+	$FLASH_TOOL -c rk3399 -d $DEVICE -p system -i $IMAGE
+else
+	echo "Burn to eMMC..."
+
+	if parted -s "$IMAGE" p 2> /dev/null | grep -q rootfs 2> /dev/null; then
+		echo "Rockchip Linux image with GPT found!"
+		IMAGE_TYPE="Linux"
+	else
+		echo "Rockchip Android image (or linux image compatible with AndroidTool one image burning) found!"
+		IMAGE_TYPE="Android"
+	fi
+
+	if [ "$IMAGE_TYPE" == "Linux" ]; then
+		echo "Try to burn Rockchip Linux image..."
+		$FLASH_TOOL -c rk3399 -p system -i $IMAGE
+	elif [ "$IMAGE_TYPE" == "Android" ]; then
+		echo "Try to burn Rockchip image..."
+		$ANDROID_TOOL UF "$IMAGE"
+	fi
 fi
 
 echo "Done!"
