@@ -81,6 +81,11 @@ else
 		exit -1
 	fi
 
+	if ! lsusb | grep -q "2207:330c" > /dev/null; then
+		error_msg "You should put your board enter upgrade mode!"
+		exit -1
+	fi
+
 	echo "Burn to eMMC..."
 
 	if parted -s "$IMAGE" p 2> /dev/null | grep -q rootfs 2> /dev/null; then

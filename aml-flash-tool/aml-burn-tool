@@ -80,6 +80,11 @@ else
 		exit -1
 	fi
 
+	if ! lsusb | grep -q "Amlogic, Inc." > /dev/null; then
+		error_msg "You should put your board enter upgrade mode!"
+		exit -1
+	fi
+
 	echo "Burning image '$IMAGE' to eMMC..."
 	$FLASH_TOOL --img=$IMAGE --parts=all --wipe --soc=gxl --reset=y
 fi
