@@ -9,6 +9,7 @@ KHADAS_TOOL="/usr/local/bin/$(basename $0)"
 
 DEVICE=
 IMAGE=
+IMAGE_INSTALL_TYPE=
 
 RED='\033[0;31m'
 RESET='\033[m'
@@ -54,15 +55,32 @@ if [ ! -f "$IMAGE" ]; then
 	exit 1
 fi
 
+partition=$(fdisk -l "$IMAGE" | grep "Disklabel type" | awk -F ": " '{print $2}' || true)
+if [ "$partition" == "dos" ]; then
+	IMAGE_INSTALL_TYPE="SD-USB"
+else
+	IMAGE_INSTALL_TYPE="EMMC"
+fi
+
 if [ -n "$DEVICE" ]; then
 	if [ ! -b $DEVICE ]; then
 		error_msg "'$DEVICE' is not a block device! Please make sure the device you choose is right."
 		exit -1
 	fi
 
+	if [ "$IMAGE_INSTALL_TYPE" != "SD-USB" ]; then
+		error_msg "Try to burn to SD/USB storage,but the image installation type is '$IMAGE_INSTALL_TYPE', please use 'SD-USB' image!"
+		exit -1
+	fi
+
 	echo "Burn to SD/USB: '$DEVICE'..."
 	$FLASH_TOOL -c rk3399 -d $DEVICE -p system -i $IMAGE
 else
+	if [ "$IMAGE_INSTALL_TYPE" != "EMMC" ]; then
+		error_msg "Try to burn to eMMC storage, but the image installation type is '$IMAGE_INSTALL_TYPE', please use 'EMMC' image!"
+		exit -1
+	fi
+
 	echo "Burn to eMMC..."
 
 	if parted -s "$IMAGE" p 2> /dev/null | grep -q rootfs 2> /dev/null; then
