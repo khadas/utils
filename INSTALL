@@ -17,6 +17,26 @@ error_msg() {
 	echo -e ${RED}Error:${RESET} $1
 }
 
+prepare_host() {
+	local hostdeps="libusb-dev git parted lib32ncurses5 lib32z1 lib32stdc++6 libusb-0.1-4"
+	local deps=()
+	local installed=$(dpkg-query -W -f '${db:Status-Abbrev}|${binary:Package}\n' '*' 2>/dev/null | grep '^ii' | awk -F '|' '{print $2}' | cut -d ':' -f 1)
+
+	for packet in $hostdeps; do
+		if ! grep -q -x -e "$packet" <<< "$installed"; then deps+=("$packet"); fi
+	done
+
+	if [[ ${#deps[@]} -gt 0 ]]; then
+		echo "Installing dependencies"
+		echo "Requires root privileges, please enter your passowrd!"
+		sudo apt update
+		sudo apt -y --no-install-recommends install "${deps[@]}"
+		sudo update-ccache-symlinks
+	fi
+}
+
+prepare_host
+
 echo -e "Installing Amlogic flash-tool..."
 $AML_FLASH_TOOL_DIR/INSTALL
 echo -e "\nInstalling Rockchip flash-tool..."
