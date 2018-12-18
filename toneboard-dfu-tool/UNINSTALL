@@ -1,0 +1,48 @@
+#!/bin/bash
+
+set -e -o pipefail
+
+BASE=$(dirname "$(readlink -fm "$0")")
+DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
+DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
+KHADAS_TOOL_NAME="toneboard-burn-tool"
+INSTALL_DIR="/usr/local/bin"
+
+RULE=
+
+RED='\033[0;31m'
+RESET='\033[m'
+
+error_msg() {
+	echo -e ${RED}Error:${RESET} $1
+}
+
+echo ""
+echo "==============================================="
+echo ""
+echo "Host PC: $DISTRIB $DISTRIB_RELEASE"
+echo ""
+echo "==============================================="
+echo ""
+
+if [ "$DISTRIB" != "Ubuntu" ]; then
+	error_msg "This burn tool just support Ubuntu now, other distributions haven't been verified!"
+	exit 1
+fi
+
+echo "Removing USB rules..."
+
+if [[ "$DISTRIB_RELEASE" =~ "16" || "$DISTRIB_RELEASE" =~ "18" ]]; then
+	RULE="/etc/udev/rules.d/80-toneboard-usb.rules"
+else
+	error_msg "Ubuntu $DISTRIB_RELEASE haven't been verified!"
+	exit 1
+fi
+
+sudo rm -f $RULE
+sudo udevadm control --reload-rules
+
+echo "Removing toneboard-burn-tool..."
+sudo rm -f $INSTALL_DIR/$KHADAS_TOOL_NAME
+
+echo "Done!"

@@ -1,0 +1,66 @@
+#!/bin/bash
+
+set -e -o pipefail
+
+BASE=$(dirname "$(readlink -fm "$0")")
+BURN_TOOL="$BASE/tools/toneboard_dfu_tool"
+KHADAS_TOOL="/usr/local/bin/$(basename $0)"
+
+DEVICE=
+IMAGE=
+
+RED='\033[0;31m'
+RESET='\033[m'
+
+error_msg() {
+	echo -e "$RED"ERROR:"$RESET" $1
+}
+
+usage() {
+	echo -e "Usage:"
+	echo -e "$(basename $0) -i <path-to-firmware>"
+}
+
+if [ ! -L $KHADAS_TOOL ]; then
+	error_msg "Please install `basename $0`. Execute 'INSTALL' script to install it."
+	exit 1
+fi
+
+while getopts "d:i:h" flag; do
+    case $flag in
+		d)
+		DEVICE="$OPTARG"
+		if [ ! -b "$DEVICE" ]; then
+			error_msg "Device '$DEVICE' doesn't exist!"
+			usage
+			exit -1
+		fi
+		;;
+		i)
+		IMAGE="$OPTARG"
+		;;
+		h)
+		usage
+		exit
+		;;
+	esac
+done
+
+if [ ! -f "$IMAGE" ]; then
+	error_msg "Image file '$IMAGE' doesn't exist!"
+	usage
+	exit 1
+fi
+
+if ! lsusb | grep -q "XMOS Ltd" > /dev/null; then
+	error_msg "You should connect the ToneBoard to your computer!"
+	exit -1
+fi
+
+
+echo "Upgrading ToneBoard firmware..."
+$BURN_TOOL --download "$IMAGE"
+
+
+echo "Done!"
+

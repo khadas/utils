@@ -5,8 +5,10 @@ set -e -o pipefail
 BASE=$(dirname "$(readlink -fm "$0")")
 AML_FLASH_TOOL_DIR="$BASE/aml-flash-tool"
 RK_FLASH_TOOL_DIR="$BASE/rk-flash-tool"
+TB_FLASH_TOOL_DIR="$BASE/toneboard-dfu-tool"
 AML_BURN_TOOL="$AML_FLASH_TOOL_DIR/aml-burn-tool"
 RK_BURN_TOOL="$RK_FLASH_TOOL_DIR/rk-burn-tool"
+TB_BURN_TOOL="$TB_FLASH_TOOL_DIR/toneboard-burn-tool"
 KHADAS_BURN_TOOL="$BASE/burn-tool"
 INSTALL_DIR="/usr/local/bin"
 
@@ -18,7 +20,7 @@ error_msg() {
 }
 
 prepare_host() {
-	local hostdeps="libusb-dev git parted lib32ncurses5 lib32z1 lib32stdc++6 libusb-0.1-4"
+	local hostdeps="libusb-dev git parted lib32ncurses5 lib32z1 lib32stdc++6 libusb-0.1-4 libusb-1.0-0-dev libusb-1.0-0"
 	local deps=()
 	local installed=$(dpkg-query -W -f '${db:Status-Abbrev}|${binary:Package}\n' '*' 2>/dev/null | grep '^ii' | awk -F '|' '{print $2}' | cut -d ':' -f 1)
 
@@ -41,6 +43,8 @@ echo -e "Installing Amlogic flash-tool..."
 $AML_FLASH_TOOL_DIR/INSTALL
 echo -e "\nInstalling Rockchip flash-tool..."
 $RK_FLASH_TOOL_DIR/INSTALL
+echo -e "\nInstalling ToneBoard burn-tool..."
+$TB_FLASH_TOOL_DIR/INSTALL
 echo -e "Installing Khadas burn-tool..."
 mkdir -p $INSTALL_DIR
 sudo ln -fs $KHADAS_BURN_TOOL $INSTALL_DIR/$(basename $KHADAS_BURN_TOOL)
