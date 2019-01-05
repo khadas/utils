@@ -12,6 +12,10 @@ TB_BURN_TOOL="$TB_FLASH_TOOL_DIR/toneboard-burn-tool"
 KHADAS_BURN_TOOL="$BASE/burn-tool"
 INSTALL_DIR="/usr/local/bin"
 
+DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
+DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
+
+
 RED='\033[0;31m'
 RESET='\033[m'
 
@@ -20,9 +24,15 @@ error_msg() {
 }
 
 prepare_host() {
-	local hostdeps="libusb-dev git parted lib32ncurses5 lib32z1 lib32stdc++6 libusb-0.1-4 libusb-1.0-0-dev libusb-1.0-0"
+	local hostdeps="libusb-dev git parted lib32z1 lib32stdc++6 libusb-0.1-4 libusb-1.0-0-dev libusb-1.0-0 ccache libncurses5"
 	local deps=()
 	local installed=$(dpkg-query -W -f '${db:Status-Abbrev}|${binary:Package}\n' '*' 2>/dev/null | grep '^ii' | awk -F '|' '{print $2}' | cut -d ':' -f 1)
+
+	if [ "$DISTRIB" == "Ubuntu" -a "$DISTRIB_RELEASE" == "18.10" ]; then
+		hostdeps="$hostdeps lib32ncurses6"
+	else
+		hostdeps="$hostdeps lib32ncurses5"
+	fi
 
 	for packet in $hostdeps; do
 		if ! grep -q -x -e "$packet" <<< "$installed"; then deps+=("$packet"); fi
