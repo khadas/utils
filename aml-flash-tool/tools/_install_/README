@@ -1,0 +1,62 @@
+                            Readme for Amlogic usb upgrade tool in Ubuntu (beta version)
+                                                                            2014/04/29 by Sam
+
+    This 'update' bin is the Linux 64bits version of windows 'update.exe', Now it's simple verified in my 'Ubuntu 12.04.4 LTS' of 64bits edition.
+    
+    1, Brief introduction
+        Amlogic usb protocol is extended from libusb (www.libusb.org) and called WorldCup.
+        The update tool is command line mode version of usb burning tool, You can use it to boot Amlogic chip from usb if you know the Worldcup protocol.
+        the update tool is simple to use like Android 'fastboot' tool, and it's more powerful during Amlogic chip development as it's supported inside Amlogic Soc firmware.
+
+    2, How to install 'update' in Ubuntu.
+        I take k200 platform for example here:
+
+        2.1)Add the Ubuntu user to access worldcup device without root authority.
+            in the path /etc/udev/rules.d, create a '70-persistent-usb.rules' and edit like this:
+                SUBSYSTEMS=="usb",ATTRS{idVendor}=="1b8e",ATTRS{idProduct}=="c003",OWNER="yourUserName",MODE="0666",SYMLINK+="worldcup"
+
+            2.1.1)You can refer this rule from the attachment file '70-persistent-usb.rules', and Make attention to change 'yourUserName' to the real user name, in my Ubuntu it is 'amlogic'.
+            2.1.2) for other version of Ubuntu, please refer how to creat a udev rules for usb device from Web.
+            2.1.3) restart you udev server to valid you rule: 'sudo udevadm control --reload-rules'.
+
+        2.2) Enter usb burning mode:
+            Connect the usb otg line between ubuntu pc and Amlogic platform, input 'reboot update' in Android mode or 'run update' in uboot command mode, So you enter the usb burning mode.
+            !! you should see 'Enter v2 usbburning mode' in uboot command and stoped in uboot when you enter usb burning mode.
+
+        2.3) Install the libusb driver:
+            In your Ubuntu pc, use 'lsusb' to see whether the Ubuntu is already installed the libusb library.
+            2.3.1) If you see device like this: 'ID 1b8e:c003 Amlogic. Inc.', Now you PC already can use the 'update' tool.
+            2.3.2) If you fail to see Amlogic worldcup device string '1b8e:c003...', you can install it use command 'sudo apt-get install libusb-dev'
+            2.3.3) check driver installed ok: 
+                    Make sure plugout and plugin the usb cable to let worldcup usb device probed by Ubuntu:
+                    > use 'lsusb' to see if Amlogic device '1b8e:c003...' recognized.
+                    > In Ubuntu 12.04, There must be a device called '/dev/worldcup' as descripted in you udev rules.
+
+        2.4) Just drop the 'update' bin in anywhere you like, I drop it in path: '/opt/update', and 'chmod +x /opt/update'.
+
+
+         3, How to use update tool:
+               for users, update tool of Ubuntu version is exactly the same as windows version.
+
+            3.1) use '/opt/update scan' and '/opt/update identify' to check if worldcup device is active.
+                
+            3.2) Use cmd [/opt/update partition partName imagePath] to flash any partition.
+                for examples: 
+                first, cd to you image path, I use 'cd android/out/target/product/k200/', 
+                3.2.1) flash u-boot.bin, you use command 
+                    [/opt/update partition bootloader u-boot.bin];
+
+                3.2.2) flash boot.img, your use:
+                    [/opt/update partition boot boot.img];
+
+                3.2.3) flash system.img, your use:
+                    As flash driver may not init partition system, you should use cmd [/opt/update bulkcmd "disk_initial"] to init all the partitions. then you use following command to actually flash system partition:
+                    [/opt/update partition system system.img];
+
+            3.3) Exit after finishing you usb burning:
+                you can use command [/opt/update bulkcmd "poweroff"] or [/opt/update bulkcmd "reset"] to exit usb burning mode.
+                PS: you can put any Uboot command in bulkcmd string like this: [/opt/update bulkcmd "printenv"], [/opt/update bulkcmd "defenv;save"]
+
+
+
+--End this Readme.

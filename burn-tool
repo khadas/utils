@@ -19,7 +19,7 @@ error_msg() {
 
 usage() {
 	echo -e "Usage:"
-	echo -e "Burn VIMs image: $0 [-v aml] -i <path-to-image>"
+	echo -e "Burn VIMs image: $0 [-v aml] [-b <VIM1|VIM2|VIM3>] -i <path-to-image>"
 	echo -e "Burn Edge:       $0 -v rk -i <path-to-image>"
 }
 
@@ -28,13 +28,16 @@ if [ ! -L $KHADAS_BURN_TOOL ]; then
 	exit 1
 fi
 
-while getopts "v:i:h" flag; do
+while getopts "v:i:b:h" flag; do
 	case $flag in
 		v)
 		VENDER="$OPTARG"
 		;;
 		i)
 		IMAGE="$OPTARG"
+		;;
+		b)
+		BOARD="$OPTARG"
 		;;
 		h)
 		usage
@@ -56,8 +59,10 @@ if [ "$VENDER" == "rk" ]; then
 	echo "Try to burn Rockchip image..."
 	$RK_BURN_TOOL -i "$IMAGE"
 elif [ "$VENDER" == "aml" ]; then
+	# Default BOARD VIM1
+	BOARD=${BOARD:-VIM1}
 	echo "Try to burn Amlogic image..."
-	$AML_BURN_TOOL -i "$IMAGE"
+	$AML_BURN_TOOL -b "$BOARD" -i "$IMAGE"
 else
 	error_msg "Unsupported vender: '$VENDER'!"
 	usage

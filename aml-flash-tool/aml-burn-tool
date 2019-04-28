@@ -7,6 +7,7 @@ KHADAS_TOOL="/usr/local/bin/$(basename $0)"
 
 IMAGE=
 DEVICE=
+BOARD=
 IMAGE_INSTALL_TYPE=
 
 RED='\033[0;31m'
@@ -18,7 +19,7 @@ error_msg() {
 
 usage() {
 	echo -e "Usage:"
-	echo -e "emmc:   $0 -i <path-to-image>"
+	echo -e "emmc:   $0 -b <VIM1|VIM2|VIM3> -i <path-to-image>"
 	echo -e "sdcard: $0 -d </dev/sdX> -i <path-to-image>"
 }
 
@@ -33,13 +34,16 @@ if [ ! -L $KHADAS_TOOL ]; then
 	exit 1
 fi
 
-while getopts "d:i:h" flag; do
+while getopts "d:i:b:h" flag; do
 	case $flag in
 		d)
 		DEVICE="$OPTARG"
 		;;
 		i)
 		IMAGE="$OPTARG"
+		;;
+		b)
+		BOARD="$OPTARG"
 		;;
 		h)
 		usage
@@ -52,6 +56,10 @@ if [ ! -f "$IMAGE" ]; then
 	error_msg "Image '$IMAGE' doesn't exist!"
 	usage
 	exit -1
+fi
+
+if [ -z "$BOARD" ]; then
+	BOARD="VIM1"
 fi
 
 partition=$(fdisk -l "$IMAGE" | grep "Disklabel type" | awk -F ": " '{print $2}' || true)
@@ -85,6 +93,17 @@ else
 		exit -1
 	fi
 
-	echo "Burning image '$IMAGE' to eMMC..."
-	$FLASH_TOOL --img=$IMAGE --parts=all --wipe --soc=gxl --reset=y
+	if [ "$BOARD" == "VIM1" ] || [ "$BOARD" == "VIM2" ]; then
+		SOC="gxl"
+		DISPLAY_BOARD="VIM1/VIM2"
+	elif [ "$BOARD" == "VIM3" ]; then
+		SOC="g12a"
+		DISPLAY_BOARD="VIM3"
+	else
+		error_msg "Unsupported board: [$BOARD]"
+		exit -1
+	fi
+
+	echo "Burning image '$IMAGE' for '$DISPLAY_BOARD' to eMMC..."
+	$FLASH_TOOL --img=$IMAGE --parts=all --wipe --soc=$SOC --reset=y
 fi
