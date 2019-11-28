@@ -24,6 +24,16 @@ usage() {
 	echo -e "Burn to SD/USB: $0 -d </dev/sdX> -i <path-to-image>"
 }
 
+## Calculate time
+## $1 - time in seconds
+time_cal() {
+	local minutes
+
+	minutes=$(($1 / 60))
+
+	echo "Time elapsed: $minutes minute(s)."
+}
+
 if [ ! -L $KHADAS_TOOL ]; then
 	error_msg "Please install `basename $0`. Execute 'INSTALL' script to install it."
 	exit 1
@@ -61,6 +71,8 @@ if [ "$partition" == "dos" ]; then
 else
 	IMAGE_INSTALL_TYPE="EMMC"
 fi
+
+start_time=`date +%s`
 
 if [ -n "$DEVICE" ]; then
 	if [ ! -b $DEVICE ]; then
@@ -104,6 +116,10 @@ else
 		$ANDROID_TOOL UF "$IMAGE"
 	fi
 fi
+
+end_time=`date +%s`
+
+time_cal $(($end_time - $start_time))
 
 echo "Done!"
 

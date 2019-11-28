@@ -29,6 +29,16 @@ flash_sdcard() {
 	sync
 }
 
+## Calculate time
+## $1 - time in seconds
+time_cal() {
+	local minutes
+
+	minutes=$(($1 / 60))
+
+	echo "Time elapsed: $minutes minute(s)."
+}
+
 if [ ! -L $KHADAS_TOOL ]; then
 	error_msg "Please install `basename $0`. Execute 'INSTALL' script to install it."
 	exit 1
@@ -69,6 +79,8 @@ else
 	IMAGE_INSTALL_TYPE="EMMC"
 fi
 
+start_time=`date +%s`
+
 if [ $DEVICE ]; then
 	if [ ! -b $DEVICE ]; then
 		error_msg "'$DEVICE' is not a block device! Please make sure the device you choose is right."
@@ -107,3 +119,9 @@ else
 	echo "Burning image '$IMAGE' for '$DISPLAY_BOARD' to eMMC..."
 	$FLASH_TOOL --img=$IMAGE --parts=all --wipe --soc=$SOC --reset=y
 fi
+
+end_time=`date +%s`
+
+time_cal $(($end_time - $start_time))
+
+echo "Done!"
