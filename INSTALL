@@ -28,7 +28,7 @@ prepare_host() {
 	local deps=()
 	local installed=$(dpkg-query -W -f '${db:Status-Abbrev}|${binary:Package}\n' '*' 2>/dev/null | grep '^ii' | awk -F '|' '{print $2}' | cut -d ':' -f 1)
 
-	if [ "$DISTRIB" == "Ubuntu" -a "$DISTRIB_RELEASE" == "18.10" ]; then
+	if [ "$DISTRIB" == "Ubuntu" -a "$DISTRIB_RELEASE" == "18.10" ] || [ "$DISTRIB" == "Ubuntu" -a "$DISTRIB_RELEASE" == "19.10" ]; then
 		hostdeps="$hostdeps lib32ncurses6"
 	else
 		hostdeps="$hostdeps lib32ncurses5"
