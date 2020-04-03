@@ -12,9 +12,13 @@ TB_BURN_TOOL="$TB_FLASH_TOOL_DIR/toneboard-burn-tool"
 KHADAS_BURN_TOOL="$BASE/burn-tool"
 INSTALL_DIR="/usr/local/bin"
 
-DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
-DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
-
+if [ -f /etc/lsb-release ]; then
+	DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
+	DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
+else
+	OS=$(hostnamectl | grep "Operating System" | awk -F ": " '{ print $2}')
+	OS_RELEASE=$(cat /etc/os-release | grep "BUILD_ID" | awk -F "=" '{print $2}')
+fi
 
 RED='\033[0;31m'
 RESET='\033[m'
@@ -24,6 +28,50 @@ error_msg() {
 }
 
 prepare_host() {
+
+	if [ "${#DISTRIB}" -gt 0 ]; then
+		case "$DISTRIB" in
+		    UBUNTU | DEBIAN)
+			prepare_host_dpkg
+			;;
+		esac
+	elif [ "${#OS}" -gt 0 ]; then
+		case "$OS" in
+		    "Arch Linux")
+			prepare_host_arch
+			;;
+		esac
+	else
+	    echo -e "Given  is not supported."
+	fi
+}
+
+prepare_host_arch() {
+	local deps_arch="ccache git parted pv libusb"
+	local deps_arch32bit="lib32-zlib"
+	local deps=()
+
+	# to install 32bit apps we need to install form the "multilib" repository
+	if [ ! $(grep -e "^\[multilib\]" /etc/pacman.conf) ] ; then
+	    error_msg "please enable multilib in your pacman.conf. We needed 32bit program execution"
+	    echo "edit /etc/pacman.conf, and run pacman -Sy and try again ..."
+	    exit 1
+	fi
+
+	for packet in $deps_arch $deps_arch32bit; do
+		if ! pacman -Qi $packet >/dev/null 2>&1; then deps+=("$packet"); fi
+	done
+
+	if [[ ${#deps[@]} -gt 0 ]]; then
+		echo "Installing dependencies"
+		echo "Requires root privileges, please enter your password!"
+		sudo pacman -Su
+		sudo pacman -S "${deps[@]}"
+		sudo update-ccache-symlinks
+	fi
+}
+
+prepare_host_dpkg() {
 	local hostdeps="libusb-dev git parted lib32z1 lib32stdc++6 libusb-0.1-4 libusb-1.0-0-dev libusb-1.0-0 ccache libncurses5 pv"
 	local deps=()
 	local installed=$(dpkg-query -W -f '${db:Status-Abbrev}|${binary:Package}\n' '*' 2>/dev/null | grep '^ii' | awk -F '|' '{print $2}' | cut -d ':' -f 1)
@@ -40,7 +88,7 @@ prepare_host() {
 
 	if [[ ${#deps[@]} -gt 0 ]]; then
 		echo "Installing dependencies"
-		echo "Requires root privileges, please enter your passowrd!"
+		echo "Requires root privileges, please enter your password!"
 		sudo apt update
 		sudo apt -y --no-install-recommends install "${deps[@]}"
 		sudo update-ccache-symlinks
