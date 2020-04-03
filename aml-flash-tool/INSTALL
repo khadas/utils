@@ -6,47 +6,66 @@ BASE=$(dirname "$(readlink -fm "$0")")
 FLASH_TOOL="$BASE/flash-tool"
 KHADAS_TOOL="$BASE/aml-burn-tool"
 RULES_DIR="$BASE/rules"
-DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
-DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
 INSTALL_DIR="/usr/local/bin"
+
+if [ -f /etc/lsb-release ]; then
+	DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
+	DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
+else
+	OS=$(hostnamectl | grep "Operating System" | awk -F ": " '{ print $2}')
+	OS_RELEASE=$(cat /etc/os-release | grep "BUILD_ID" | awk -F "=" '{print $2}')
+fi
 
 RULE=
 
 RED='\033[0;31m'
 RESET='\033[m'
 
-echo ""
-echo "==============================================="
-echo ""
-echo "Host PC: $DISTRIB $DISTRIB_RELEASE"
-echo ""
-echo "==============================================="
-echo ""
-
 error_msg() {
 	echo -e ${RED}Error:${RESET} $1
 }
 
-if [ "$DISTRIB" != "Ubuntu" ]; then
-	error_msg "This flash tool just support Ubuntu now, other distributions haven't been verified!"
-	exit 1
-fi
+install_usb_rules() {
+	echo "Installing USB rules..."
 
-echo "Installing USB rules..."
+	if [[ "$DISTRIB_RELEASE" =~ "12" ]]; then
+		RULE="$RULES_DIR/70-persistent-usb-ubuntu12.rules"
+		sudo cp $RULE /etc/udev/rules.d
+		sudo sed -i s/OWNER=\"amlogic\"/OWNER=\"`whoami`\"/g /etc/udev/rules.d/$(basename $RULE)
+	elif [[ "$DISTRIB_RELEASE" =~ "14" || "$DISTRIB_RELEASE" =~ "16" || "$DISTRIB_RELEASE" =~ "18" || "$DISTRIB_RELEASE" =~ "19" ]]; then
+		RULE="$RULES_DIR/70-persistent-usb-ubuntu14.rules"
+		sudo cp $RULE /etc/udev/rules.d
+	else
+		error_msg "Ubuntu $DISTRIB_RELEASE haven't been verified!"
+		exit 1
+	fi
 
-if [[ "$DISTRIB_RELEASE" =~ "12" ]]; then
-	RULE="$RULES_DIR/70-persistent-usb-ubuntu12.rules"
-	sudo cp $RULE /etc/udev/rules.d
-	sudo sed -i s/OWNER=\"amlogic\"/OWNER=\"`whoami`\"/g /etc/udev/rules.d/$(basename $RULE)
-elif [[ "$DISTRIB_RELEASE" =~ "14" || "$DISTRIB_RELEASE" =~ "16" || "$DISTRIB_RELEASE" =~ "18" || "$DISTRIB_RELEASE" =~ "19" ]]; then
-	RULE="$RULES_DIR/70-persistent-usb-ubuntu14.rules"
-	sudo cp $RULE /etc/udev/rules.d
-else
-	error_msg "Ubuntu $DISTRIB_RELEASE haven't been verified!"
-	exit 1
-fi
+	sudo udevadm control --reload-rules
+}
 
-sudo udevadm control --reload-rules
+prepare_host() {
+	if [ "${#DISTRIB}" -gt 0 ]; then
+		case "$DISTRIB" in
+		    UBUNTU | DEBIAN)
+			echo "Preparing host: Distributin $DISTRIB ($DISTRIB_RELEASE)"
+			echo ""
+			prepare_host_dpkg
+			;;
+		esac
+	elif [ "${#OS}" -gt 0 ]; then
+		case "$OS" in
+		    "Arch Linux")
+			echo "Preparing host: OS $OS ($OS_RELEASE)"
+			echo "usb rules are already in shape!"
+			;;
+		esac
+	else
+	    echo -e "Given distribution is not supported and hasn't been verified."
+	    exit 1
+	fi
+}
+
+prepare_host
 
 echo "Installing flash-tool..."
 mkdir -p $INSTALL_DIR
