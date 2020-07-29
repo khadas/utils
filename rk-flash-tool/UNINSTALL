@@ -33,7 +33,7 @@ fi
 
 echo "Removing USB rules..."
 
-if [[ "$DISTRIB_RELEASE" =~ "16" || "$DISTRIB_RELEASE" =~ "18" ]]; then
+if [[ "$DISTRIB_RELEASE" =~ "16" || "$DISTRIB_RELEASE" =~ "18" || "$DISTRIB_RELEASE" =~ "20" ]]; then
 	RULE="/etc/udev/rules.d/80-rockchip-usb.rules"
 else
 	error_msg "Ubuntu $DISTRIB_RELEASE haven't been verified!"
