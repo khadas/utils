@@ -432,53 +432,105 @@ echo -e $GREEN"[OK]"$RESET
 print_debug ""
 print_debug "Parsing image configuration files"
 print_debug "---------------------------------"
-platform_conf_name=`awk '/sub_type=\"platform\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
-print_debug "platform_conf_name  = $platform_conf_name"
-ddr_filename=`awk '/sub_type=\"DDR\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
-print_debug "ddr_filename        = $ddr_filename"
-uboot_filename=`awk '/sub_type=\"UBOOT\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
-print_debug "uboot_filename      = $uboot_filename"
-uboot_comp_filename=`awk '/sub_type=\"UBOOT_COMP\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
-print_debug "uboot_comp_filename = $uboot_comp_filename"
-dtb_meson_filename=`awk '/sub_type=\"meson\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
-print_debug "dtb_meson_filename  = $dtb_meson_filename"
-dtb_meson1_filename=`awk '/sub_type=\"meson1\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
-print_debug "dtb_meson1_filename = $dtb_meson1_filename"
-dtb_meson1_enc_filename=`awk '/sub_type=\"meson1_ENC\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
-print_debug "dtb_meson1_enc_filename = $dtb_meson1_enc_filename"
-ddr_enc_filename=`awk '/sub_type=\"DDR_ENC\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
-print_debug "ddr_enc_filename    = $ddr_enc_filename"
-uboot_enc_filename=`awk '/sub_type=\"UBOOT_ENC\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
-print_debug "uboot_enc_filename  = $uboot_enc_filename"
-keys_filename=`awk '/sub_type=\"keys\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
-print_debug "keys_filename       = $keys_filename"
-platform=`awk '/Platform:/{gsub("Platform:","",$1); print $1}' $tmp_dir/$platform_conf_name`
-print_debug "platform            = $platform"
-bin_params=`awk '/BinPara:/{gsub("BinPara:","",$1); print $1}' $tmp_dir/$platform_conf_name`
-print_debug "bin_params          = $bin_params"
-ddr_load=`awk '/DDRLoad:/{gsub("DDRLoad:","",$1); print $1}' $tmp_dir/$platform_conf_name`
-print_debug "ddr_load            = $ddr_load"
-ddr_run=`awk '/DDRRun:/{gsub("DDRRun:","",$1); print $1}' $tmp_dir/$platform_conf_name`
-print_debug "ddr_run             = $ddr_run"
-uboot_down=`awk '/Uboot_down:/{gsub("Uboot_down:","",$1); print $1}' $tmp_dir/$platform_conf_name`
-print_debug "uboot_down          = $uboot_down"
-uboot_decomp=`awk '/Uboot_decomp:/{gsub("Uboot_decomp:","",$1); print $1}' $tmp_dir/$platform_conf_name`
-print_debug "uboot_decomp        = $uboot_decomp"
-uboot_enc_down=`awk '/Uboot_enc_down:/{gsub("Uboot_enc_down:","",$1); print $1}' $tmp_dir/$platform_conf_name`
-print_debug "uboot_enc_down      = $uboot_enc_down"
-uboot_enc_run=`awk '/Uboot_enc_run:/{gsub("Uboot_enc_run:","",$1); print $1}' $tmp_dir/$platform_conf_name`
-print_debug "uboot_enc_run       = $uboot_enc_run"
-uboot_load=`awk '/UbootLoad:/{gsub("UbootLoad:","",$1); print $1}' $tmp_dir/$platform_conf_name`
-print_debug "uboot_load          = $uboot_load"
-uboot_run=`awk '/UbootRun:/{gsub("UbootRun:","",$1); print $1}' $tmp_dir/$platform_conf_name`
-print_debug "uboot_run           = $uboot_run"
-bl2_params=`awk '/bl2ParaAddr=/{gsub("bl2ParaAddr=","",$1); print $1}' $tmp_dir/$platform_conf_name`
-print_debug "bl2_params          = $bl2_params"
-nb_partitions=`awk '/main_type=\"PARTITION\"/{print}' $tmp_dir/image.cfg|wc -l`
-print_debug "nb_partitions       = $nb_partitions"
-partitions_file=( `awk '/main_type=\"PARTITION\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg | xargs` )
-partitions_name=( `awk '/main_type=\"PARTITION\"/{gsub("sub_type=","",$3); gsub(/"/,"",$3); print $3}' $tmp_dir/image.cfg | xargs` )
-partitions_type=( `awk '/main_type=\"PARTITION\"/{gsub("file_type=","",$4); gsub(/"/,"",$4); print $4}' $tmp_dir/image.cfg | xargs` )
+source /etc/lsb-release
+if linux-version compare $DISTRIB_RELEASE ge 19.10; then
+	platform_conf_name=`awk '/sub_type="platform"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "platform_conf_name  = $platform_conf_name"
+	ddr_filename=`awk '/sub_type="DDR"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "ddr_filename        = $ddr_filename"
+	uboot_filename=`awk '/sub_type="UBOOT"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "uboot_filename      = $uboot_filename"
+	uboot_comp_filename=`awk '/sub_type="UBOOT_COMP"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "uboot_comp_filename = $uboot_comp_filename"
+	dtb_meson_filename=`awk '/sub_type="meson"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "dtb_meson_filename  = $dtb_meson_filename"
+	dtb_meson1_filename=`awk '/sub_type="meson1"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "dtb_meson1_filename = $dtb_meson1_filename"
+	dtb_meson1_enc_filename=`awk '/sub_type="meson1_ENC"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "dtb_meson1_enc_filename = $dtb_meson1_enc_filename"
+	ddr_enc_filename=`awk '/sub_type="DDR_ENC"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "ddr_enc_filename    = $ddr_enc_filename"
+	uboot_enc_filename=`awk '/sub_type="UBOOT_ENC"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "uboot_enc_filename  = $uboot_enc_filename"
+	keys_filename=`awk '/sub_type="keys"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "keys_filename       = $keys_filename"
+	platform=`awk '/Platform:/{gsub("Platform:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "platform            = $platform"
+	bin_params=`awk '/BinPara:/{gsub("BinPara:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "bin_params          = $bin_params"
+	ddr_load=`awk '/DDRLoad:/{gsub("DDRLoad:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "ddr_load            = $ddr_load"
+	ddr_run=`awk '/DDRRun:/{gsub("DDRRun:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "ddr_run             = $ddr_run"
+	uboot_down=`awk '/Uboot_down:/{gsub("Uboot_down:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "uboot_down          = $uboot_down"
+	uboot_decomp=`awk '/Uboot_decomp:/{gsub("Uboot_decomp:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "uboot_decomp        = $uboot_decomp"
+	uboot_enc_down=`awk '/Uboot_enc_down:/{gsub("Uboot_enc_down:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "uboot_enc_down      = $uboot_enc_down"
+	uboot_enc_run=`awk '/Uboot_enc_run:/{gsub("Uboot_enc_run:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "uboot_enc_run       = $uboot_enc_run"
+	uboot_load=`awk '/UbootLoad:/{gsub("UbootLoad:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "uboot_load          = $uboot_load"
+	uboot_run=`awk '/UbootRun:/{gsub("UbootRun:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "uboot_run           = $uboot_run"
+	bl2_params=`awk '/bl2ParaAddr=/{gsub("bl2ParaAddr=","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "bl2_params          = $bl2_params"
+	nb_partitions=`awk '/main_type="PARTITION"/{print}' $tmp_dir/image.cfg|wc -l`
+	print_debug "nb_partitions       = $nb_partitions"
+	partitions_file=( `awk '/main_type="PARTITION"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg | xargs` )
+	partitions_name=( `awk '/main_type="PARTITION"/{gsub("sub_type=","",$3); gsub(/"/,"",$3); print $3}' $tmp_dir/image.cfg | xargs` )
+	partitions_type=( `awk '/main_type="PARTITION"/{gsub("file_type=","",$4); gsub(/"/,"",$4); print $4}' $tmp_dir/image.cfg | xargs` )
+else
+	platform_conf_name=`awk '/sub_type=\"platform\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "platform_conf_name  = $platform_conf_name"
+	ddr_filename=`awk '/sub_type=\"DDR\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "ddr_filename        = $ddr_filename"
+	uboot_filename=`awk '/sub_type=\"UBOOT\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "uboot_filename      = $uboot_filename"
+	uboot_comp_filename=`awk '/sub_type=\"UBOOT_COMP\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "uboot_comp_filename = $uboot_comp_filename"
+	dtb_meson_filename=`awk '/sub_type=\"meson\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "dtb_meson_filename  = $dtb_meson_filename"
+	dtb_meson1_filename=`awk '/sub_type=\"meson1\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "dtb_meson1_filename = $dtb_meson1_filename"
+	dtb_meson1_enc_filename=`awk '/sub_type=\"meson1_ENC\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "dtb_meson1_enc_filename = $dtb_meson1_enc_filename"
+	ddr_enc_filename=`awk '/sub_type=\"DDR_ENC\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "ddr_enc_filename    = $ddr_enc_filename"
+	uboot_enc_filename=`awk '/sub_type=\"UBOOT_ENC\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "uboot_enc_filename  = $uboot_enc_filename"
+	keys_filename=`awk '/sub_type=\"keys\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
+	print_debug "keys_filename       = $keys_filename"
+	platform=`awk '/Platform:/{gsub("Platform:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "platform            = $platform"
+	bin_params=`awk '/BinPara:/{gsub("BinPara:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "bin_params          = $bin_params"
+	ddr_load=`awk '/DDRLoad:/{gsub("DDRLoad:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "ddr_load            = $ddr_load"
+	ddr_run=`awk '/DDRRun:/{gsub("DDRRun:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "ddr_run             = $ddr_run"
+	uboot_down=`awk '/Uboot_down:/{gsub("Uboot_down:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "uboot_down          = $uboot_down"
+	uboot_decomp=`awk '/Uboot_decomp:/{gsub("Uboot_decomp:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "uboot_decomp        = $uboot_decomp"
+	uboot_enc_down=`awk '/Uboot_enc_down:/{gsub("Uboot_enc_down:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "uboot_enc_down      = $uboot_enc_down"
+	uboot_enc_run=`awk '/Uboot_enc_run:/{gsub("Uboot_enc_run:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "uboot_enc_run       = $uboot_enc_run"
+	uboot_load=`awk '/UbootLoad:/{gsub("UbootLoad:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "uboot_load          = $uboot_load"
+	uboot_run=`awk '/UbootRun:/{gsub("UbootRun:","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "uboot_run           = $uboot_run"
+	bl2_params=`awk '/bl2ParaAddr=/{gsub("bl2ParaAddr=","",$1); print $1}' $tmp_dir/$platform_conf_name`
+	print_debug "bl2_params          = $bl2_params"
+	nb_partitions=`awk '/main_type=\"PARTITION\"/{print}' $tmp_dir/image.cfg|wc -l`
+	print_debug "nb_partitions       = $nb_partitions"
+	partitions_file=( `awk '/main_type=\"PARTITION\"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg | xargs` )
+	partitions_name=( `awk '/main_type=\"PARTITION\"/{gsub("sub_type=","",$3); gsub(/"/,"",$3); print $3}' $tmp_dir/image.cfg | xargs` )
+	partitions_type=( `awk '/main_type=\"PARTITION\"/{gsub("file_type=","",$4); gsub(/"/,"",$4); print $4}' $tmp_dir/image.cfg | xargs` )
+fi
+
 print_debug ""
 print_debug "Partition list"
 print_debug "--------------"
