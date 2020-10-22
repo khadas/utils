@@ -44,7 +44,7 @@ if [ ! -L $KHADAS_TOOL ]; then
 	exit 1
 fi
 
-while getopts "d:i:b:h" flag; do
+while getopts "d:i:b:Dh" flag; do
 	case $flag in
 		d)
 		DEVICE="$OPTARG"
@@ -54,6 +54,9 @@ while getopts "d:i:b:h" flag; do
 		;;
 		b)
 		BOARD="$OPTARG"
+		;;
+		D)
+		DEBUG="--debug"
 		;;
 		h)
 		usage
@@ -117,7 +120,7 @@ else
 	fi
 
 	echo "Burning image '$IMAGE' for '$DISPLAY_BOARD' to eMMC..."
-	$FLASH_TOOL --img=$IMAGE --parts=all --wipe --soc=$SOC --reset=y
+	$FLASH_TOOL --img=$IMAGE --parts=all --wipe --soc=$SOC --reset=y ${DEBUG}
 fi
 
 end_time=`date +%s`
