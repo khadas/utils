@@ -128,3 +128,4 @@ end_time=`date +%s`
 time_cal $(($end_time - $start_time))
 
 echo "Done!"
+date
