@@ -5,10 +5,10 @@ set -e -o pipefail
 BASE=$(dirname "$(readlink -fm "$0")")
 AML_FLASH_TOOL_DIR="$BASE/aml-flash-tool"
 RK_FLASH_TOOL_DIR="$BASE/rk-flash-tool"
-TB_FLASH_TOOL_DIR="$BASE/toneboard-dfu-tool"
+TB_FLASH_TOOL_DIR="$BASE/tone-dfu-tool"
 AML_BURN_TOOL="$AML_FLASH_TOOL_DIR/aml-burn-tool"
 RK_BURN_TOOL="$RK_FLASH_TOOL_DIR/rk-burn-tool"
-TB_BURN_TOOL="$TB_FLASH_TOOL_DIR/toneboard-burn-tool"
+TB_BURN_TOOL="$TB_FLASH_TOOL_DIR/tone-burn-tool"
 KHADAS_BURN_TOOL="$BASE/burn-tool"
 INSTALL_DIR="/usr/local/bin"
 
@@ -24,7 +24,7 @@ echo -e "Removing Amlogic flash-tool..."
 $AML_FLASH_TOOL_DIR/UNINSTALL
 echo -e "\nRemoving Rockchip flash-tool..."
 $RK_FLASH_TOOL_DIR/UNINSTALL
-echo -e "\nRemoving ToneBoard burn-tool..."
+echo -e "\nRemoving Khadas Tone burn-tool..."
 $TB_FLASH_TOOL_DIR/UNINSTALL
 echo -e "Removing Khadas burn-tool..."
 sudo rm -f $INSTALL_DIR/$(basename $KHADAS_BURN_TOOL)

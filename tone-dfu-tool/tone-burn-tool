@@ -3,8 +3,10 @@
 set -e -o pipefail
 
 BASE=$(dirname "$(readlink -fm "$0")")
-BURN_TOOL="$BASE/tools/toneboard_dfu_tool"
+BURN_TOOL="$BASE/tools/tone_dfu_tool"
 KHADAS_TOOL="/usr/local/bin/$(basename $0)"
+KHADAS_USB_VID=0x3353
+KHADAS_USB_XMOS_VID=0x20b1
 
 DEVICE=
 IMAGE=
@@ -52,13 +54,13 @@ if [ ! -f "$IMAGE" ]; then
 	exit 1
 fi
 
-if ! lsusb | grep -q "XMOS Ltd" > /dev/null; then
-	error_msg "You should connect the ToneBoard to your computer!"
+if ! lsusb -d $KHADAS_USB_VID: > /dev/null && ! lsusb -d $KHADAS_USB_XMOS_VID: > /dev/null; then
+	error_msg "You should connect the Tone to your computer!"
 	exit -1
 fi
 
 
-echo "Upgrading ToneBoard firmware..."
+echo "Upgrading Tone firmware..."
 $BURN_TOOL --download "$IMAGE"
 
 
