@@ -113,7 +113,7 @@ else
 		DISPLAY_BOARD="VIM1/VIM2"
 	elif [ "$BOARD" == "VIM3" ]; then
 		SOC="g12a"
-		DISPLAY_BOARD="VIM3"
+		DISPLAY_BOARD="VIM3/VIM3L"
 	else
 		error_msg "Unsupported board: [$BOARD]"
 		exit -1
