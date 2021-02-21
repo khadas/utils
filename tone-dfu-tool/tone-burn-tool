@@ -3,7 +3,7 @@
 set -e -o pipefail
 
 BASE=$(dirname "$(readlink -fm "$0")")
-BURN_TOOL="$BASE/tools/tone_dfu_tool"
+BURN_TOOL="$BASE/tools/`uname -i`/tone_dfu_tool"
 KHADAS_TOOL="/usr/local/bin/$(basename $0)"
 KHADAS_USB_VID=0x3353
 KHADAS_USB_XMOS_VID=0x20b1
