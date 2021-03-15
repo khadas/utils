@@ -13,6 +13,7 @@ INSTALL_DIR="/usr/local/bin"
 RULE=
 
 RED='\033[0;31m'
+YELLOW="\e[0;33m"
 RESET='\033[m'
 
 echo ""
@@ -27,9 +28,19 @@ error_msg() {
 	echo -e ${RED}Error:${RESET} $1
 }
 
+warning_msg() {
+	echo -e ${YELLOW}Warning:${RESET} $1
+}
+
 if [ "$DISTRIB" != "Ubuntu" ]; then
-	error_msg "This flash tool just support Ubuntu now, other distributions haven't been verified!"
-	exit 1
+	warning_msg "This flash tool just support Ubuntu now, other distributions haven't been verified!"
+	read -p "Continue any way? [No/yes] " answer
+	if [[ "$answer" != "yes" && "$answer" != "Yes" ]]; then
+		exit 1
+	else
+		IGNORE_CHECK=yes
+		warning_msg "You choose to not check the system environment, the installation may be failed!!!"
+	fi
 fi
 
 echo "Installing USB rules..."
@@ -38,7 +49,7 @@ if [[ "$DISTRIB_RELEASE" =~ "12" ]]; then
 	RULE="$RULES_DIR/70-persistent-usb-ubuntu12.rules"
 	sudo cp $RULE /etc/udev/rules.d
 	sudo sed -i s/OWNER=\"amlogic\"/OWNER=\"`whoami`\"/g /etc/udev/rules.d/$(basename $RULE)
-elif [[ "$DISTRIB_RELEASE" =~ "14" || "$DISTRIB_RELEASE" =~ "16" || "$DISTRIB_RELEASE" =~ "18" || "$DISTRIB_RELEASE" =~ "19" || "$DISTRIB_RELEASE" =~ "20" ]]; then
+elif [[ "$IGNORE_CHECK" == "yes" || "$DISTRIB_RELEASE" =~ "14" || "$DISTRIB_RELEASE" =~ "16" || "$DISTRIB_RELEASE" =~ "18" || "$DISTRIB_RELEASE" =~ "19" || "$DISTRIB_RELEASE" =~ "20" ]]; then
 	RULE="$RULES_DIR/70-persistent-usb-ubuntu14.rules"
 	sudo cp $RULE /etc/udev/rules.d
 else

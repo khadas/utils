@@ -25,10 +25,10 @@ echo ""
 echo "==============================================="
 echo ""
 
-if [ "$DISTRIB" != "Ubuntu" ]; then
-	error_msg "This flash tool just support Ubuntu now, other distributions haven't been verified!"
-	exit 1
-fi
+#if [ "$DISTRIB" != "Ubuntu" ]; then
+#	error_msg "This flash tool just support Ubuntu now, other distributions haven't been verified!"
+#	exit 1
+#fi
 
 echo "Removing USB rules..."
 
@@ -37,8 +37,9 @@ if [[ "$DISTRIB_RELEASE" =~ "12" ]]; then
 elif [[ "$DISTRIB_RELEASE" =~ "14" || "$DISTRIB_RELEASE" =~ "16" || "$DISTRIB_RELEASE" =~ "18" || "$DISTRIB_RELEASE" =~ "20" ]]; then
 	RULE="/etc/udev/rules.d/70-persistent-usb-ubuntu14.rules"
 else
-	error_msg "Ubuntu $DISTRIB_RELEASE haven't been verified!"
-	exit 1
+#	error_msg "Ubuntu $DISTRIB_RELEASE haven't been verified!"
+#	exit 1
+	RULE="/etc/udev/rules.d/70-persistent-usb-ubuntu14.rules"
 fi
 
 sudo rm -f $RULE
