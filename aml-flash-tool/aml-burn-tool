@@ -3,6 +3,7 @@
 set -e -o pipefail
 
 FLASH_TOOL="$(dirname "$(readlink -fm "$0")")/flash-tool"
+ADNL_TOOL="$(dirname "$(readlink -fm "$0")")/tools/adnl/adnl_burn_pkg"
 KHADAS_TOOL="/usr/local/bin/$(basename $0)"
 
 IMAGE=
@@ -19,7 +20,7 @@ error_msg() {
 
 usage() {
 	echo -e "Usage:"
-	echo -e "emmc:   $0 -b <VIM1|VIM2|VIM3> -i <path-to-image>"
+	echo -e "emmc:   $0 -b <VIM1|VIM2|VIM3|VIM4> -i <path-to-image>"
 	echo -e "sdcard: $0 -d </dev/sdX> -i <path-to-image>"
 }
 
@@ -114,13 +115,20 @@ else
 	elif [ "$BOARD" == "VIM3" ]; then
 		SOC="g12a"
 		DISPLAY_BOARD="VIM3/VIM3L"
+	elif [ "$BOARD" == "VIM4" ]; then
+		SOC="t7"
+		DISPLAY_BOARD="VIM4"
 	else
 		error_msg "Unsupported board: [$BOARD]"
 		exit -1
 	fi
 
 	echo "Burning image '$IMAGE' for '$DISPLAY_BOARD' to eMMC..."
-	$FLASH_TOOL --img=$IMAGE --parts=all --wipe --soc=$SOC --reset=y ${DEBUG}
+	if [ "$BOARD" == "VIM1" ] || [ "$BOARD" == "VIM2" ] || [ "$BOARD" == "VIM3" ]; then
+		$FLASH_TOOL --img=$IMAGE --parts=all --wipe --soc=$SOC --reset=y ${DEBUG}
+	elif [ "$BOARD" == "VIM4" ]; then
+		$ADNL_TOOL -p $IMAGE
+	fi
 fi
 
 end_time=`date +%s`
