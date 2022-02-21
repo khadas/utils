@@ -65,6 +65,14 @@ if [ ! -f "$IMAGE" ]; then
 	exit 1
 fi
 
+case $IMAGE in
+	*.xz)
+		echo "Decompressing image ..."
+		xz -d -f $IMAGE
+		IMAGE=${IMAGE::-3}
+	;;
+esac
+
 partition=$(fdisk -l "$IMAGE" | grep "Disklabel type" | awk -F ": " '{print $2}' || true)
 if [ "$partition" == "dos" ]; then
 	IMAGE_INSTALL_TYPE="SD-USB"

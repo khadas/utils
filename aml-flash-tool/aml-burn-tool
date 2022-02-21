@@ -75,6 +75,14 @@ if [ ! -f "$IMAGE" ]; then
 	exit -1
 fi
 
+case $IMAGE in
+	*.xz)
+	echo "Decompressing image ..."
+	xz -d -f $IMAGE
+	IMAGE=${IMAGE::-3}
+	;;
+esac
+
 if [ -z "$BOARD" ]; then
 	BOARD="VIM1"
 fi
