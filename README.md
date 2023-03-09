@@ -7,6 +7,6 @@ Utils/Tools for development
 
 About usage of the burning tool please refer to the following documentation.
 
-* [Amlogic platform documentation](https://docs.khadas.com/vim1/UpgradeViaUSBCable.html#Upgrade-On-Ubuntu).
-* [Rockchip platform documentation](https://docs.khadas.com/edge/UpgradeViaUSBCable.html#Upgrade-On-Ubuntu).
-* [Khadas Tone upgrade documentation](https://docs.khadas.com/tone1/HowtoUpgradeFirmware.html#Upgrade-On-Ubuntu).
+* [Amlogic platform documentation](https://docs.khadas.com/products/sbc/common/install-os/install-os-into-emmc-on-ubuntu).
+* [Rockchip platform documentation](https://docs.khadas.com/products/sbc/common/install-os/install-os-into-emmc-on-ubuntu).
+* [Khadas Tone upgrade documentation](https://docs.khadas.com/products/audio/tone1/upgrade-firmware#tab__ubuntu-legacy).
