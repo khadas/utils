@@ -14,7 +14,7 @@ INSTALL_DIR="/usr/local/bin"
 
 DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
 DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
-
+DISTRIB_ARCH=`dpkg --print-architecture`
 
 RED='\033[0;31m'
 RESET='\033[m'
@@ -24,14 +24,25 @@ error_msg() {
 }
 
 prepare_host() {
-	local hostdeps="libusb-dev git parted lib32z1 lib32stdc++6 libusb-0.1-4 libusb-1.0-0-dev libusb-1.0-0 ccache libncurses5 pv base-files linux-base xz-utils"
+	local hostdeps="libusb-dev git parted libusb-0.1-4 libusb-1.0-0-dev libusb-1.0-0 ccache libncurses5 pv base-files linux-base xz-utils"
+
+	if [[ "$DISTRIB_ARCH" == arm* ]]; then
+		hostdeps="$hostdeps libc6:armhf libusb-0.1-4:armhf"
+	else
+		hostdeps="$hostdeps lib32z1 lib32stdc++6"
+	fi
+
 	local deps=()
 	local installed=$(dpkg-query -W -f '${db:Status-Abbrev}|${binary:Package}\n' '*' 2>/dev/null | grep '^ii' | awk -F '|' '{print $2}' | cut -d ':' -f 1)
 
 	if [[ "$DISTRIB" == "Ubuntu" ]] && [[ "$DISTRIB_RELEASE" == "18.10" || "$DISTRIB_RELEASE" =~ "20" || "$DISTRIB_RELEASE" =~ "22" ]]; then
-		hostdeps="$hostdeps lib32ncurses6"
+		if [[ "$DISTRIB_ARCH" != arm* ]]; then
+			hostdeps="$hostdeps lib32ncurses6"
+		fi
 	else
-		hostdeps="$hostdeps lib32ncurses5"
+		if [[ "$DISTRIB_ARCH" != arm* ]]; then
+			hostdeps="$hostdeps lib32ncurses5"
+		fi
 	fi
 
 	for packet in $hostdeps; do
