@@ -23,7 +23,7 @@ error_msg() {
 	echo -e ${RED}Error:${RESET} $1
 }
 
-prepare_host() {
+setup_ubuntu_host() {
 	local hostdeps="libusb-dev git parted lib32z1 lib32stdc++6 libusb-0.1-4 libusb-1.0-0-dev libusb-1.0-0 ccache libncurses5 pv base-files linux-base xz-utils"
 	local deps=()
 	local installed=$(dpkg-query -W -f '${db:Status-Abbrev}|${binary:Package}\n' '*' 2>/dev/null | grep '^ii' | awk -F '|' '{print $2}' | cut -d ':' -f 1)
@@ -45,6 +45,38 @@ prepare_host() {
 		sudo apt -y --no-install-recommends install "${deps[@]}"
 		sudo update-ccache-symlinks
 	fi
+}
+
+setup_arch_host() {
+	local hostdeps=("libusb" "git" "parted" "lib32-zlib" "libusb-compat" "usbutils" "ccache" "pv" "file" "base" "xz")
+	local aur_packages="ncurses5-compat-libs lib32-ncurses5-compat-libs"
+	echo "Installing dependencies"
+	echo "Requires root privileges, please enter your passowrd!"
+	# Install dependencies
+	sudo pacman -Syyu --noconfirm --needed "${hostdeps[@]}"
+	# Install AUR packages
+	for package in $aur_packages; do
+		echo "Installing $package"
+		git clone https://aur.archlinux.org/"$package"
+		cd "$package" || exit
+		makepkg -si --skippgpcheck --noconfirm --needed
+		cd - || exit
+		rm -rf "$package"
+	done
+	sudo update-ccache-symlinks
+}
+
+prepare_host() {
+	case $DISTRIB in
+	    "\"Arch\"")
+	    setup_arch_host
+		;;
+	    "\"Ubuntu\"")
+	    setup_ubuntu_host
+		;;
+		*)
+		echo "$DISTRIB is unsupported"
+	esac
 }
 
 prepare_host
