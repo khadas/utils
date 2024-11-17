@@ -46,7 +46,7 @@ fi
 
 echo "Installing USB rules..."
 
-if [[ "$IGNORE_CHECK" == "yes" || "$DISTRIB_RELEASE" =~ "16" || "$DISTRIB_RELEASE" =~ "18" || "$DISTRIB_RELEASE" =~ "20" || "$DISTRIB_RELEASE" =~ "22" ]]; then
+if [[ "$IGNORE_CHECK" == "yes" || "$DISTRIB_RELEASE" =~ "16" || "$DISTRIB_RELEASE" =~ "18" || "$DISTRIB_RELEASE" =~ "20" || "$DISTRIB_RELEASE" =~ "22" || "$DISTRIB_RELEASE" =~ "24" ]]; then
 	RULE="$RULES_DIR/80-rockchip-usb.rules"
 	sudo cp $RULE /etc/udev/rules.d
 else

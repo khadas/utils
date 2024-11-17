@@ -24,14 +24,14 @@ error_msg() {
 }
 
 setup_ubuntu_host() {
-	local hostdeps="libusb-dev git parted lib32z1 lib32stdc++6 libusb-0.1-4 libusb-1.0-0-dev libusb-1.0-0 ccache libncurses5 pv base-files linux-base xz-utils"
+	local hostdeps="libusb-dev git parted lib32z1 lib32stdc++6 libusb-0.1-4 libusb-1.0-0-dev libusb-1.0-0 ccache pv base-files linux-base xz-utils"
 	local deps=()
 	local installed=$(dpkg-query -W -f '${db:Status-Abbrev}|${binary:Package}\n' '*' 2>/dev/null | grep '^ii' | awk -F '|' '{print $2}' | cut -d ':' -f 1)
 
-	if [[ "$DISTRIB" == "Ubuntu" ]] && [[ "$DISTRIB_RELEASE" == "18.10" || "$DISTRIB_RELEASE" =~ "20" || "$DISTRIB_RELEASE" =~ "22" ]]; then
-		hostdeps="$hostdeps lib32ncurses6"
+	if [[ "$DISTRIB" == "Ubuntu" ]] && [[ "$DISTRIB_RELEASE" == "18.10" || "$DISTRIB_RELEASE" =~ "20" || "$DISTRIB_RELEASE" =~ "22" || "$DISTRIB_RELEASE" =~ "24" ]]; then
+		hostdeps="$hostdeps lib32ncurses6 libncurses6"
 	else
-		hostdeps="$hostdeps lib32ncurses5"
+		hostdeps="$hostdeps lib32ncurses5 libncurses5"
 	fi
 
 	for packet in $hostdeps; do
@@ -68,10 +68,10 @@ setup_arch_host() {
 
 prepare_host() {
 	case $DISTRIB in
-	    "\"Arch\"")
+	    \"Arch\"|Arch)
 	    setup_arch_host
 		;;
-	    "\"Ubuntu\"")
+	    \"Ubuntu\"|Ubuntu)
 	    setup_ubuntu_host
 		;;
 		*)
