@@ -1,0 +1,1 @@
+upgrade_tool is a tool for developing.it can download load and firmware,erase device and so on.
