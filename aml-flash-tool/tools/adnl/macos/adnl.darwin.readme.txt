@@ -1,0 +1,10 @@
+use 'otool -L $(which adnl)' to check dependencies
+/usr/local/bin/adnl:
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1252.250.1)
+	/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 1570.15.0)
+	/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit (compatibility version 1.0.0, current version 275.0.0)
+	/System/Library/Frameworks/Carbon.framework/Versions/A/Carbon (compatibility version 2.0.0, current version 158.0.0)
+	/usr/local/opt/pcre/lib/libpcre.1.dylib (compatibility version 4.0.0, current version 4.11.0)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 400.9.4)
+
+if u cannot resolve libpcre.1.dylib, then install it using 'brew install pcre'
