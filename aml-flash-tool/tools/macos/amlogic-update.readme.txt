@@ -1,0 +1,7 @@
+otool -L update 
+update:
+	/usr/local/opt/libusb-compat/lib/libusb-0.1.4.dylib (compatibility version 9.0.0, current version 9.4.0)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 902.1.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.100.1)
+
+To install libusb-0.1.4.dylib, use: brew install libusb-compat   
