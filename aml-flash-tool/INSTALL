@@ -6,8 +6,8 @@ BASE=$(dirname "$(readlink -fm "$0")")
 FLASH_TOOL="$BASE/flash-tool"
 KHADAS_TOOL="$BASE/aml-burn-tool"
 RULES_DIR="$BASE/rules"
-DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
-DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
+DISTRIB=$(cat /etc/os-release | grep "^ID=" | awk -F "=" '{print $2}')
+DISTRIB_RELEASE=$(cat /etc/os-release | grep "^VERSION_ID=" | awk -F "=" '{print $2}')
 INSTALL_DIR="/usr/local/bin"
 
 RULE=
@@ -33,27 +33,27 @@ warning_msg() {
 }
 
 if [ "$DISTRIB" != "Ubuntu" ]; then
-	warning_msg "This flash tool just support Ubuntu now, other distributions haven't been verified!"
+	warning_msg "This flash tool only officially supports Ubuntu now, other distributions haven't been verified!"
 	read -p "Continue any way? [No/yes] " answer
 	if [[ "$answer" != "yes" && "$answer" != "Yes" ]]; then
 		exit 1
 	else
 		IGNORE_CHECK=yes
-		warning_msg "You choose to not check the system environment, the installation may be failed!!!"
+		warning_msg "You choose to not check the system environment, the installation may fail!"
 	fi
 fi
 
 echo "Installing USB rules..."
 
-if [[ "$DISTRIB_RELEASE" =~ "12" ]]; then
+if [[ "$DISTRIB" == "Ubuntu" && "$DISTRIB_RELEASE" =~ "12" ]]; then
 	RULE="$RULES_DIR/70-persistent-usb-ubuntu12.rules"
 	sudo cp $RULE /etc/udev/rules.d
 	sudo sed -i s/OWNER=\"amlogic\"/OWNER=\"`whoami`\"/g /etc/udev/rules.d/$(basename $RULE)
-elif [[ "$IGNORE_CHECK" == "yes" || "$DISTRIB_RELEASE" =~ "14" || "$DISTRIB_RELEASE" =~ "16" || "$DISTRIB_RELEASE" =~ "18" || "$DISTRIB_RELEASE" =~ "19" || "$DISTRIB_RELEASE" =~ "20" || "$DISTRIB_RELEASE" =~ "22" || "$DISTRIB_RELEASE" =~ "24"  ]]; then
+elif [[ "$IGNORE_CHECK" == "yes" || "$DISTRIB" == "Ubuntu" && ("$DISTRIB_RELEASE" =~ "14" || "$DISTRIB_RELEASE" =~ "16" || "$DISTRIB_RELEASE" =~ "18" || "$DISTRIB_RELEASE" =~ "19" || "$DISTRIB_RELEASE" =~ "20" || "$DISTRIB_RELEASE" =~ "22" || "$DISTRIB_RELEASE" =~ "24") ]]; then
 	RULE="$RULES_DIR/70-persistent-usb-ubuntu14.rules"
 	sudo cp $RULE /etc/udev/rules.d
 else
-	error_msg "Ubuntu $DISTRIB_RELEASE haven't been verified!"
+	error_msg "Distribution $DISTRIB $DISTRIB_RELEASE hasn't been verified!"
 	exit 1
 fi
 

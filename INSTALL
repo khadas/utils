@@ -12,8 +12,11 @@ TB_BURN_TOOL="$TB_FLASH_TOOL_DIR/tone-burn-tool"
 KHADAS_BURN_TOOL="$BASE/burn-tool"
 INSTALL_DIR="/usr/local/bin"
 
-DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
-DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
+echo $INSTALL_DIR
+DISTRIB=$(cat /etc/os-release | grep "^ID=" | awk -F "=" '{print $2}')
+echo $DISTRIB
+DISTRIB_RELEASE=$(cat /etc/os-release | grep "^VERSION_ID=" | awk -F "=" '{print $2}')
+echo $DISTRIB_RELEASE
 
 
 RED='\033[0;31m'
@@ -21,6 +24,27 @@ RESET='\033[m'
 
 error_msg() {
 	echo -e ${RED}Error:${RESET} $1
+}
+
+setup_fedora_host() {
+	local hostdeps="git parted lib32z1 lib32stdc++6 libusb1-devel libusb1 ccache libncurses5 pv base-files linux-base xz-utils"
+	local deps=()
+	# local installed=$(dpkg-query -W -f '${db:Status-Abbrev}|${binary:Package}\n' '*' 2>/dev/null | grep '^ii' | awk -F '|' '{print $2}' | cut -d ':' -f 1)
+	echo "Checking installed packages"
+	local installed=$(dnf list --installed ${hostdeps} | tail -n +2)
+
+	for packet in $hostdeps; do
+		if ! grep -q -x -e "$packet" <<< "$installed"; then deps+=("$packet"); fi
+	done
+
+	if [[ ${#deps[@]} -gt 0 ]]; then
+		echo "Installing dependencies"
+		echo "Requires root privileges, please enter your password!"
+		sudo dnf -y --no-install-recommends install "${deps[@]}"
+		sudo update-ccache-symlinks
+	else
+		echo "All packages present"
+	fi
 }
 
 setup_ubuntu_host() {
@@ -74,11 +98,15 @@ prepare_host() {
 	    "\"Ubuntu\"")
 	    setup_ubuntu_host
 		;;
+	    "\"fedora\"")
+	    setup_fedora_host
+		;;
 		*)
 		echo "$DISTRIB is unsupported"
 	esac
 }
 
+echo "Preparing ${DISTRIB}"
 prepare_host
 
 echo -e "Installing Amlogic flash-tool..."
