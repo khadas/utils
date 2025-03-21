@@ -1,0 +1,136 @@
+v2.37 revision(2024/07/04)
+1.fix dhara image download bug
+
+v2.36 revision(2024/06/14)
+1.add check partition for download gpt
+2.add dhara image support 
+
+v2.35 revision(2024/06/11)
+1.fix "ul" command do not skip download boot at usbplug state
+
+v2.34 revision(2024/06/04)
+1.add partition size check for writing lba
+
+v2.33 revision(2024/05/08)
+1.support to switch storage in loader mode
+
+v2.32 revision(2024/04/02)
+1.pl support to read rk mcu partition
+
+v2.30 revision(2024/03/13)
+1.support to download 4k-2k idblock on spinand
+2.support to download gpt on 4k ufs
+
+v2.29 revision(2024/02/27)
+1.set erase one size as 128k for nor flash
+2.support crc off for downloading 471 and 472
+
+v2.28 revision(2023/12/22)
+1.support to usb2 reconnection when failure of swiching usb3
+
+v2.28 revision(2023/12/12)
+1.add usb transfer 4m handshake with device
+
+v2.27 revision(2023/10/20)
+1.add closeIDBcheck function
+2.fix create comm bug release pimage twice
+
+v2.26 revision(2023/10/08)
+1.fix env firmware check condition bug
+
+v2.25 revision(2023/09/18)
+1.support usb3 upgrade
+
+v2.24 revision(2023/09/11)
+1.fix di command for env partition bug,write image at offset 0x2000
+
+v2.23 revision(2023/08/28)
+1.skip fill chunk with 0 on downloading sparse image 
+
+v2.22 revision(2023/07/03)
+1.add grow_align to specify if align on grow partition
+
+v2.21 revision(2023/04/12)
+1.fix download sparse bug casue of use the default_rw_sectors 
+
+v2.20 revision(2023/03/07)
+1.add jffs image download support
+2.add force_data_band config 
+
+v2.19 revision(2023/01/10)
+1.add sfi command to print loader and firmware info
+2.add exf command to extract firmware or loader
+
+v2.18 revision(2022/11/10)
+1.support to download update.img into the second storage
+
+v2.17 revision(2022/09/19)
+1.fix sparse size larger than 4g bug on computing total size
+2.add stdout buffer config
+
+v2.16 revision(2022/09/19)
+1.fix chunk data size bug on writing sparse
+2.set stdout nobuffer mode
+
+v2.15 revision(2022/08/21)
+1.fix multi-storage firmware compatible bug
+
+v2.14 revision(2022/08/16)
+1.fix  upgrade multi-storage firmware bug
+2.change sparse percent output
+
+v2.13 revision(2022/08/08)
+1.support new multi-storage firmware
+
+v2.12 revision(2022/08/04)
+1.download_image get lbatimes to set package size
+
+v2.11 revision(2022/08/04)
+1.support multi-storage firmware with div
+2.ssd suport to set storage no argument
+
+v2.10 revision(2022/06/13)
+1.add parity on writing lba
+2.change idblock copycount as 2
+3.modify write sector function for verifying
+
+v2.9 revision(2022/05/27)
+1.fix upgrade env update bug
+
+v2.8 revision(2022/05/20)
+1.add read/write/search operation for disk
+
+v2.7 revision(2022/03/28)
+1.add block align check on writing lba for nand
+2.add print file and offset on writing lba
+
+v2.6 revision(2022/03/26)
+1.fix upgrade firmware bug after ssd
+2.add another jffs magic 
+3.delete program log printf
+
+v2.5 revision(2022/03/22)
+1.support to upgrade env firmware
+2.fix wl command for ubi bug
+
+v2.4 revision(2022/03/17)
+1.get serial no on windows
+2.wl command support ubi and jffs
+3.pl command support env partition table
+
+v2.3 revision(2022/03/09)
+1.support SocToolKit 
+2.support to compile on mac
+3.fix ssd call on linux
+
+v2.2 revision(2021/12/31)
+1.fix rc4 size bug
+2.support to parse efi flag on gpt parameter
+
+v2.1 revision(2021/11/11)
+1.add function to check pagesize for ubi image
+2.destrory gpt content when download parameter
+
+v2.0 revision(2021/08/23)
+1.add switch storage function
+2.support upgrade loader with storage
