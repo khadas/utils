@@ -71,7 +71,7 @@ prepare_host() {
 	    "\"Arch\"")
 	    setup_arch_host
 		;;
-	    "\"Ubuntu\"")
+	    "Ubuntu")
 	    setup_ubuntu_host
 		;;
 		*)
