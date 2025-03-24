@@ -52,11 +52,6 @@ if [ ! -f "$IMAGE" ]; then
 	exit 1
 fi
 
-if [ "$(uname -o)" = "Darwin" ] && [ "$(uname -m)" = "arm64" ]; then
-	error_msg "Flashing tone board is currently not supported on Apple Silicon"
-	exit -1
-fi
-
 if [ "$(uname -o)" = "Darwin" ]; then
 	if ! ioreg -p IOUSB -l -x | grep idVendor | grep -q "${KHADAS_USB_VID}\|${KHADAS_USB_XMOS_VID}"; then
 		error_msg "You should connect the Tone to your computer!"
