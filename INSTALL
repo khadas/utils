@@ -2,7 +2,15 @@
 
 set -e -o pipefail
 
-BASE=$(dirname "$(readlink -fm "$0")")
+BASE=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+
+if [ "$(uname -o)" = "Darwin" ]; then
+	DISTRIB=macOS
+else
+	DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
+	DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
+fi
+
 AML_FLASH_TOOL_DIR="$BASE/aml-flash-tool"
 RK_FLASH_TOOL_DIR="$BASE/rk-flash-tool"
 TB_FLASH_TOOL_DIR="$BASE/tone-dfu-tool"
@@ -11,10 +19,6 @@ RK_BURN_TOOL="$RK_FLASH_TOOL_DIR/rk-burn-tool"
 TB_BURN_TOOL="$TB_FLASH_TOOL_DIR/tone-burn-tool"
 KHADAS_BURN_TOOL="$BASE/burn-tool"
 INSTALL_DIR="/usr/local/bin"
-
-DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
-DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
-
 
 RED='\033[0;31m'
 RESET='\033[m'
@@ -66,6 +70,20 @@ setup_arch_host() {
 	sudo update-ccache-symlinks
 }
 
+setup_macos_host() {
+	local hostdeps=("libusb" "git" "libusb-compat" "pv" "xz")
+
+	if ! which -s brew; then
+		echo "Homebrew is needed for dependency installation. Please install the same and then try again."
+		exit 1
+	fi
+
+	echo "Installing dependencies"
+	echo "Requires root privileges, please enter your passowrd!"
+	# Install dependencies
+	brew install "${hostdeps[@]}"
+}
+
 prepare_host() {
 	case $DISTRIB in
 	    "\"Arch\"")
@@ -73,6 +91,9 @@ prepare_host() {
 		;;
 	    "Ubuntu")
 	    setup_ubuntu_host
+		;;
+	    "macOS")
+	    setup_macos_host
 		;;
 		*)
 		echo "$DISTRIB is unsupported"

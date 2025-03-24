@@ -2,11 +2,16 @@
 
 set -e -o pipefail
 
-BASE=$(dirname "$(readlink -fm "$0")")
-DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
-DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
+BASE=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+
+if [ "$(uname -o)" = "Darwin" ]; then
+	DISTRIB=macOS
+else
+	DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
+	DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
+fi
+
 KHADAS_TOOL_NAME="rk-burn-tool"
-ANDROID_TOOL_CONFIG="$BASE/tools/Linux_Upgrade_Tool/config.ini"
 INSTALL_DIR="/usr/local/bin"
 
 RULE=
@@ -26,23 +31,14 @@ echo ""
 echo "==============================================="
 echo ""
 
-#if [ "$DISTRIB" != "Ubuntu" ]; then
-#	error_msg "This flash tool just support Ubuntu now, other distributions haven't been verified!"
-#	exit 1
-#fi
+if [ "$DISTRIB" != "macOS" ]; then
+	echo "Removing USB rules..."
 
-echo "Removing USB rules..."
+	RULE="/etc/udev/rules.d/80-rockchip-usb.rules"
 
-if [[ "$DISTRIB_RELEASE" =~ "16" || "$DISTRIB_RELEASE" =~ "18" || "$DISTRIB_RELEASE" =~ "20" ]]; then
-	RULE="/etc/udev/rules.d/80-rockchip-usb.rules"
-else
-#	error_msg "Ubuntu $DISTRIB_RELEASE haven't been verified!"
-#	exit 1
-	RULE="/etc/udev/rules.d/80-rockchip-usb.rules"
+	sudo rm -f $RULE
+	sudo udevadm control --reload-rules
 fi
-
-sudo rm -f $RULE
-sudo udevadm control --reload-rules
 
 echo "Removing flash-tool..."
 sudo rm -f $INSTALL_DIR/$KHADAS_TOOL_NAME

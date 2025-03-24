@@ -2,7 +2,7 @@
 
 set -e -o pipefail
 
-BASE=$(dirname "$(readlink -fm "$0")")
+BASE=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 AML_BURN_TOOL="$BASE/aml-flash-tool/aml-burn-tool"
 RK_BURN_TOOL="$BASE/rk-flash-tool/rk-burn-tool"
 KHADAS_BURN_TOOL="/usr/local/bin/$(basename $0)"

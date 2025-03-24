@@ -2,8 +2,14 @@
 
 set -e -o pipefail
 
-BASE=$(dirname "$(readlink -fm "$0")")
-BURN_TOOL="$BASE/tools/`uname -i`/tone_dfu_tool"
+BASE=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+
+if [ "$(uname -o)" = "Darwin" ] ; then
+	BURN_TOOL="$BASE/tools/macos/tone_dfu_tool"
+else
+	BURN_TOOL="$BASE/tools/`uname -i`/tone_dfu_tool"
+fi
+
 KHADAS_TOOL="/usr/local/bin/$(basename $0)"
 KHADAS_USB_VID=0x3353
 KHADAS_USB_XMOS_VID=0x20b1
@@ -28,16 +34,8 @@ if [ ! -L $KHADAS_TOOL ]; then
 	exit 1
 fi
 
-while getopts "d:i:h" flag; do
+while getopts "i:h" flag; do
     case $flag in
-		d)
-		DEVICE="$OPTARG"
-		if [ ! -b "$DEVICE" ]; then
-			error_msg "Device '$DEVICE' doesn't exist!"
-			usage
-			exit -1
-		fi
-		;;
 		i)
 		IMAGE="$OPTARG"
 		;;
@@ -54,9 +52,21 @@ if [ ! -f "$IMAGE" ]; then
 	exit 1
 fi
 
-if ! lsusb -d $KHADAS_USB_VID: > /dev/null && ! lsusb -d $KHADAS_USB_XMOS_VID: > /dev/null; then
-	error_msg "You should connect the Tone to your computer!"
+if [ "$(uname -o)" = "Darwin" ] && [ "$(uname -m)" = "arm64" ]; then
+	error_msg "Flashing tone board is currently not supported on Apple Silicon"
 	exit -1
+fi
+
+if [ "$(uname -o)" = "Darwin" ]; then
+	if ! ioreg -p IOUSB -l -x | grep idVendor | grep -q "${KHADAS_USB_VID}\|${KHADAS_USB_XMOS_VID}"; then
+		error_msg "You should connect the Tone to your computer!"
+		exit -1
+	fi
+else
+	if ! lsusb -d $KHADAS_USB_VID: > /dev/null && ! lsusb -d $KHADAS_USB_XMOS_VID: > /dev/null; then
+		error_msg "You should connect the Tone to your computer!"
+		exit -1
+	fi
 fi
 
 

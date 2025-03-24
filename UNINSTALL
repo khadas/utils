@@ -2,7 +2,8 @@
 
 set -e -o pipefail
 
-BASE=$(dirname "$(readlink -fm "$0")")
+BASE=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+
 AML_FLASH_TOOL_DIR="$BASE/aml-flash-tool"
 RK_FLASH_TOOL_DIR="$BASE/rk-flash-tool"
 TB_FLASH_TOOL_DIR="$BASE/tone-dfu-tool"
