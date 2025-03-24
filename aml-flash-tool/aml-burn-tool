@@ -108,11 +108,6 @@ else
 	fi
 fi
 
-#if [ "$(uname -o)" = "Darwin" ] && [ $BOARD != VIM4 ] && [ $BOARD != VIM1S ] && [ $IMAGE_INSTALL_TYPE = EMMC ]; then
-#	error_msg "Flashing EMMC is currently only supported for VIM4 and VIM1S on macOS"
-#	exit 1
-#fi
-
 start_time=`date +%s`
 
 if [ $DEVICE ]; then
