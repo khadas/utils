@@ -2,9 +2,15 @@
 
 set -e -o pipefail
 
-BASE=$(dirname "$(readlink -fm "$0")")
+BASE=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+
+if [ "$(uname -o)" = "Darwin" ]; then
+	ANDROID_TOOL="$BASE/tools/macos_upgrade_tool/upgrade_tool"
+else
+	ANDROID_TOOL="$BASE/tools/Linux_Upgrade_Tool/upgrade_tool"
+fi
+
 FLASH_TOOL="$BASE/flash-tool"
-ANDROID_TOOL="$BASE/tools/Linux_Upgrade_Tool/upgrade_tool"
 KHADAS_TOOL="/usr/local/bin/$(basename $0)"
 
 DEVICE=
@@ -69,15 +75,23 @@ case $IMAGE in
 	*.xz)
 		echo "Decompressing image ..."
 		xz -d -f $IMAGE
-		IMAGE=${IMAGE::-3}
+		IMAGE=${IMAGE%.*}
 	;;
 esac
 
-partition=$(fdisk -l "$IMAGE" | grep "Disklabel type" | awk -F ": " '{print $2}' || true)
-if [ "$partition" == "dos" ]; then
-	IMAGE_INSTALL_TYPE="SD-USB"
+if [ "$(uname -o)" = "Darwin" ] ; then
+	if fdisk -t "$IMAGE" && ! fdisk -d "$IMAGE" | grep -q 0xEE; then
+		IMAGE_INSTALL_TYPE="SD-USB"
+	else
+		IMAGE_INSTALL_TYPE="EMMC"
+	fi
 else
-	IMAGE_INSTALL_TYPE="EMMC"
+	partition=$(fdisk -l "$IMAGE" | grep "Disklabel type" | awk -F ": " '{print $2}' || true)
+	if [ "$partition" == "dos" ]; then
+		IMAGE_INSTALL_TYPE="SD-USB"
+	else
+		IMAGE_INSTALL_TYPE="EMMC"
+	fi
 fi
 
 start_time=`date +%s`
@@ -101,14 +115,24 @@ else
 		exit -1
 	fi
 
-	if ! lsusb | grep -q -E "2207:330c|2207:350b" > /dev/null; then
-		error_msg "You should put your board enter upgrade mode!"
-		exit -1
+	if [ "$(uname -o)" = "Darwin" ] ; then
+		if ! ioreg -p IOUSB -l -x | grep idVendor | grep -q 2207 || ! ioreg -p IOUSB -l -x | grep idProduct | grep -q "330c\|350b"; then
+			error_msg "You should put your board enter upgrade mode!"
+			exit -1
+		fi
+	else
+		if ! lsusb | grep -q -E "2207:330c|2207:350b" > /dev/null; then
+			error_msg "You should put your board enter upgrade mode!"
+			exit -1
+		fi
 	fi
 
 	echo "Burn to eMMC..."
 
-	if parted -s "$IMAGE" p 2> /dev/null | grep -q rootfs 2> /dev/null; then
+	if [ "$(uname -o)" = "Darwin" ] && fdisk -t "$IMAGE" && fdisk -d "$IMAGE" | grep -q 0xEE ; then
+		error_msg "Flashing raw gpt image is currently not supported on mac OS. Please try flashing via oowow instead."
+		exit -1
+	elif parted -s "$IMAGE" p 2> /dev/null | grep -q rootfs 2> /dev/null; then
 		echo "Rockchip Linux image with GPT found!"
 		IMAGE_TYPE="Linux"
 	else
