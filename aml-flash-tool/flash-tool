@@ -201,7 +201,7 @@ done
 
 # Testing host machine
 # --------------------
-host_os=`uname -o`
+host_os=`uname -s`
 host_machine=`uname -m|grep -i "x86"`
 if [ ! -z "$host_os" ]; then
    if [ "$host_os" = "Darwin" ]; then
