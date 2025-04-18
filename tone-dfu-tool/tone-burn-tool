@@ -4,7 +4,7 @@ set -e -o pipefail
 
 BASE=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 
-if [ "$(uname -o)" = "Darwin" ] ; then
+if [ "$(uname -s)" = "Darwin" ] ; then
 	BURN_TOOL="$BASE/tools/macos/tone_dfu_tool"
 else
 	BURN_TOOL="$BASE/tools/`uname -i`/tone_dfu_tool"
@@ -52,7 +52,7 @@ if [ ! -f "$IMAGE" ]; then
 	exit 1
 fi
 
-if [ "$(uname -o)" = "Darwin" ]; then
+if [ "$(uname -s)" = "Darwin" ]; then
 	if ! ioreg -p IOUSB -l -x | grep idVendor | grep -q "${KHADAS_USB_VID}\|${KHADAS_USB_XMOS_VID}"; then
 		error_msg "You should connect the Tone to your computer!"
 		exit -1
