@@ -4,7 +4,7 @@ set -e -o pipefail
 
 BASE=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 
-if [ "$(uname -o)" = "Darwin" ]; then
+if [ "$(uname -s)" = "Darwin" ]; then
 	ANDROID_TOOL_CONFIG="$BASE/tools/macos_upgrade_tool/config.ini"
 	DISTRIB=macOS
 else

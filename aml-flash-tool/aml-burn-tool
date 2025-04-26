@@ -6,7 +6,7 @@ BASE=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 FLASH_TOOL="$BASE/flash-tool"
 KHADAS_TOOL="/usr/local/bin/$(basename $0)"
 
-if [ "$(uname -o)" = "Darwin" ]; then
+if [ "$(uname -s)" = "Darwin" ]; then
 	ADNL_TOOL="$BASE/tools/adnl/macos/adnl_burn_pkg"
 else
 	ADNL_TOOL="$BASE/tools/adnl/adnl_burn_pkg"
@@ -93,7 +93,7 @@ if [ -z "$BOARD" ]; then
 	BOARD="VIM1"
 fi
 
-if [ "$(uname -o)" = "Darwin" ]; then
+if [ "$(uname -s)" = "Darwin" ]; then
 	if fdisk -t "$IMAGE" && ! fdisk -d "$IMAGE" | grep -q 0xEE; then
 		IMAGE_INSTALL_TYPE="SD-USB"
 	else
@@ -129,7 +129,7 @@ else
 		exit -1
 	fi
 
-	if [ "$(uname -o)" = "Darwin" ]; then
+	if [ "$(uname -s)" = "Darwin" ]; then
 		if ! ioreg -p IOUSB -l | grep -q "Amlogic" > /dev/null; then
 			error_msg "You should put your board enter upgrade mode!"
 			exit -1
