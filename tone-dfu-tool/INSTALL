@@ -4,7 +4,7 @@ set -e -o pipefail
 
 BASE=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 
-if [ "$(uname -o)" = "Darwin" ] ; then
+if [ "$(uname -s)" = "Darwin" ] ; then
 	DISTRIB=macOS
 else
 	DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
