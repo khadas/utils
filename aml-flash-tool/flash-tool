@@ -4,6 +4,7 @@ target_img=
 parts=
 wipe=
 reset=
+fastboot=
 soc=
 uboot_file=
 efuse_file=
@@ -25,7 +26,7 @@ EXE=
 # ------
 show_help()
 {
-    echo "Usage      : $0 --img=/path/to/aml_upgrade_package.img> --parts=<all|none|bootloader|dtb|logo|recovery|boot|system|..> [--wipe] [--reset=<y|n>] [--soc=<m8|axg|gxl|txlx|g12a>] [efuse-file=/path/to/file/location] [bootloader|dtb|logo|boot|...-file=/path/to/file/partition] [--password=/path/to/password.bin]"
+    echo "Usage      : $0 --img=/path/to/aml_upgrade_package.img> --parts=<all|none|bootloader|dtb|logo|recovery|boot|system|..> [--wipe] [--reset=<y|n>] [--fastboot=<y|n>] [--soc=<m8|axg|gxl|txlx|g12a>] [efuse-file=/path/to/file/location] [bootloader|dtb|logo|boot|...-file=/path/to/file/partition] [--password=/path/to/password.bin]"
     echo "Version    : 4.9"
     echo "Parameters : --img        => Specify location path to aml_upgrade_package.img"
     echo "             --parts      => Specify which partition to burn"
@@ -36,6 +37,7 @@ show_help()
     echo "             --*-file     => Force overload of partition files"
     echo "             --password   => Unlock usb mode using password file provided"
     echo "             --destroy    => Erase the bootloader and reset the board"
+    echo "             --fastboot   => Put the bootloader to fastboot mode, usable only without [--reset=..] argument"
 }
 
 # Check if a given file exists and exit if not
@@ -163,6 +165,9 @@ for opt do
     --reset)
         reset="$optval"
         ;;
+    --fastboot)
+        fastboot="$optval"
+        ;;
     --efuse-file)
         efuse_file="$optval"
         check_file $efuse_file
@@ -235,6 +240,11 @@ if [[ -z $destroy ]]; then
       echo "Missing --parts argument"
       exit 1
    fi
+fi
+if [[ ! -z "$reset" ]] && [[ ! -z "$fastboot" ]]; then
+   echo "--reset | --fastboot arguments, no simultaneous input allowed"
+   show_help
+   exit 1
 fi
 if [[ -z $soc ]]; then
    soc=gxl
@@ -543,7 +553,7 @@ print_debug "Partition list"
 print_debug "--------------"
 for i in $(seq 0 `expr $nb_partitions - 1`)
 do
-  print_debug "$i ${partitions_file[$i]} ${partitions_name[$i]} ${partitions_type[$i]}" 
+  print_debug "$i ${partitions_file[$i]} ${partitions_name[$i]} ${partitions_type[$i]}"
 done
 print_debug ""
 
@@ -899,9 +909,9 @@ fi
 # -------
 [[ -d $tmp_dir ]] && rm -rf "$tmp_dir"
 
-# Resetting board ? 
-# -----------------
-if [[ "$parts" != "none" ]]; then
+# Resetting board ? | fastboot ?
+# ------------------------------
+if [[ "$parts" != "none" ]] && [[ -z "$fastboot" ]]; then
    if [[ -z "$reset" ]]; then
       while true; do
          read -p "Do you want to reset the board? y/n [n]? " reset
@@ -913,6 +923,18 @@ if [[ "$parts" != "none" ]]; then
    if [[ $reset =~ [yY] ]]; then
       echo -n "Resetting board "
       run_update bulkcmd "burn_complete 1"
+      echo -e $GREEN"[OK]"$RESET
+   fi
+elif [[ "$parts" != "none" ]] && [[ -z "$reset" ]]; then
+   while true; do
+      read -p "Do you want to put the board into fastboot mode? y/n [n]? " fastboot
+      if [[ $fastboot =~ [yYnN] ]]; then
+         break
+      fi
+   done
+   if [[ $fastboot =~ [yY] ]]; then
+      echo -n "Rebooting to fastboot "
+      run_update bulkcmd "fastboot"
       echo -e $GREEN"[OK]"$RESET
    fi
 else
