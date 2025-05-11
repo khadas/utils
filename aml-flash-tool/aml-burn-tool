@@ -26,8 +26,10 @@ error_msg() {
 
 usage() {
 	echo -e "Usage:"
-	echo -e "emmc:   $0 -b <VIM1|VIM2|VIM3|VIM4> -i <path-to-image>"
+	echo -e "emmc:   $0 -b <VIM1|VIM2|VIM3|VIM4> -i <path-to-image> [-n]"
 	echo -e "sdcard: $0 -d </dev/sdX> -i <path-to-image>"
+	echo -e "\nOptions:"
+	echo -e "  -n    Do not destroy all partitions (only works with VIM1, VIM2, VIM3)"
 }
 
 flash_sdcard() {
@@ -51,7 +53,10 @@ if [ ! -L $KHADAS_TOOL ]; then
 	exit 1
 fi
 
-while getopts "d:i:b:Dhr" flag; do
+# Default to wipe if the option is not explicitly disabled
+WIPE_OPTION="--wipe"
+
+while getopts "d:i:b:Dhrn" flag; do
 	case $flag in
 		d)
 		DEVICE="$OPTARG"
@@ -67,6 +72,9 @@ while getopts "d:i:b:Dhr" flag; do
 		;;
 		r)
 		RESET_BOARD="yes"
+		;;
+		n)
+		WIPE_OPTION=""
 		;;
 		h)
 		usage
@@ -165,7 +173,7 @@ else
 		else
 			RESET_BOARD=
 		fi
-		$FLASH_TOOL --img=$IMAGE --parts=all --wipe --soc=$SOC ${RESET_BOARD} ${DEBUG}
+		$FLASH_TOOL --img=$IMAGE --parts=all $WIPE_OPTION --soc=$SOC ${RESET_BOARD} ${DEBUG}
 	elif [ "$BOARD" == "VIM4" ] || [ "$BOARD" == "VIM1S" ]; then
 		if [ "$RESET_BOARD" == "yes" ]; then
 			RESET_BOARD="-r 1"
