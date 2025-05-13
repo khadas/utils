@@ -30,6 +30,7 @@ usage() {
 	echo -e "sdcard: $0 -d </dev/sdX> -i <path-to-image>"
 	echo -e "\nOptions:"
 	echo -e "  -n    Do not erase the whole flash chip (default to erase)."
+	echo -e "  -s    Skip the USB connectivity check, it will be verified more reliably later during the flashing process (default to check)."
 }
 
 flash_sdcard() {
@@ -53,11 +54,13 @@ if [ ! -L $KHADAS_TOOL ]; then
 	exit 1
 fi
 
+SKIP_USB_CHECK="no"
+
 # Default to erase if the option is not explicitly provided
 # to match the default behavior of $FLASH_TOOL and $ADNL_TOOL
 ERASE_ALL="yes"
 
-while getopts "d:i:b:Dhrn" flag; do
+while getopts "d:i:b:Dhrns" flag; do
 	case $flag in
 		d)
 		DEVICE="$OPTARG"
@@ -76,6 +79,8 @@ while getopts "d:i:b:Dhrn" flag; do
 		;;
 		n)
 		ERASE_ALL="no"
+		s)
+		SKIP_USB_CHECK="yes"
 		;;
 		h)
 		usage
@@ -138,15 +143,17 @@ else
 		exit -1
 	fi
 
-	if [ "$(uname -s)" = "Darwin" ]; then
-		if ! ioreg -p IOUSB -l | grep -q "Amlogic" > /dev/null; then
-			error_msg "You should put your board enter upgrade mode!"
-			exit -1
-		fi
-	else
-		if ! lsusb | grep -q "Amlogic, Inc." > /dev/null; then
-			error_msg "You should put your board enter upgrade mode!"
-			exit -1
+	if [ "$SKIP_USB_CHECK" != "yes" ]; then
+		if [ "$(uname -s)" = "Darwin" ]; then
+			if ! ioreg -p IOUSB -l | grep -q "Amlogic" > /dev/null; then
+				error_msg "You should put your board enter upgrade mode!"
+				exit -1
+			fi
+		else
+			if ! lsusb | grep -q "Amlogic, Inc." > /dev/null; then
+				error_msg "You should put your board enter upgrade mode!"
+				exit -1
+			fi
 		fi
 	fi
 
