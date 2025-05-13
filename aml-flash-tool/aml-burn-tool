@@ -28,6 +28,8 @@ usage() {
 	echo -e "Usage:"
 	echo -e "emmc:   $0 -b <VIM1|VIM2|VIM3|VIM4> -i <path-to-image>"
 	echo -e "sdcard: $0 -d </dev/sdX> -i <path-to-image>"
+	echo -e "\nOptions:"
+	echo -e "  -s    Skip the USB connectivity check, it will be verified more reliably later during the flashing process (default to check)."
 }
 
 flash_sdcard() {
@@ -51,7 +53,9 @@ if [ ! -L $KHADAS_TOOL ]; then
 	exit 1
 fi
 
-while getopts "d:i:b:Dhr" flag; do
+SKIP_USB_CHECK="no"
+
+while getopts "d:i:b:Dhrs" flag; do
 	case $flag in
 		d)
 		DEVICE="$OPTARG"
@@ -67,6 +71,9 @@ while getopts "d:i:b:Dhr" flag; do
 		;;
 		r)
 		RESET_BOARD="yes"
+		;;
+		s)
+		SKIP_USB_CHECK="yes"
 		;;
 		h)
 		usage
@@ -129,15 +136,17 @@ else
 		exit -1
 	fi
 
-	if [ "$(uname -s)" = "Darwin" ]; then
-		if ! ioreg -p IOUSB -l | grep -q "Amlogic" > /dev/null; then
-			error_msg "You should put your board enter upgrade mode!"
-			exit -1
-		fi
-	else
-		if ! lsusb | grep -q "Amlogic, Inc." > /dev/null; then
-			error_msg "You should put your board enter upgrade mode!"
-			exit -1
+	if [ "$SKIP_USB_CHECK" != "yes" ]; then
+		if [ "$(uname -s)" = "Darwin" ]; then
+			if ! ioreg -p IOUSB -l | grep -q "Amlogic" > /dev/null; then
+				error_msg "You should put your board enter upgrade mode!"
+				exit -1
+			fi
+		else
+			if ! lsusb | grep -q "Amlogic, Inc." > /dev/null; then
+				error_msg "You should put your board enter upgrade mode!"
+				exit -1
+			fi
 		fi
 	fi
 
