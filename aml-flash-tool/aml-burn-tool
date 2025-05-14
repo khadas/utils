@@ -79,6 +79,7 @@ while getopts "d:i:b:Dhrns" flag; do
 		;;
 		n)
 		ERASE_ALL="no"
+		;;
 		s)
 		SKIP_USB_CHECK="yes"
 		;;
