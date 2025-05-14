@@ -26,9 +26,10 @@ error_msg() {
 
 usage() {
 	echo -e "Usage:"
-	echo -e "emmc:   $0 -b <VIM1|VIM2|VIM3|VIM4> -i <path-to-image>"
+	echo -e "emmc:   $0 -b <VIM1|VIM2|VIM3|VIM4> -i <path-to-image> [-n]"
 	echo -e "sdcard: $0 -d </dev/sdX> -i <path-to-image>"
 	echo -e "\nOptions:"
+	echo -e "  -n    Do not erase the whole flash chip (default to erase)."
 	echo -e "  -s    Skip the USB connectivity check, it will be verified more reliably later during the flashing process (default to check)."
 }
 
@@ -55,7 +56,11 @@ fi
 
 SKIP_USB_CHECK="no"
 
-while getopts "d:i:b:Dhrs" flag; do
+# Default to erase if the option is not explicitly provided
+# to match the default behavior of $FLASH_TOOL and $ADNL_TOOL
+ERASE_ALL="yes"
+
+while getopts "d:i:b:Dhrns" flag; do
 	case $flag in
 		d)
 		DEVICE="$OPTARG"
@@ -71,6 +76,9 @@ while getopts "d:i:b:Dhrs" flag; do
 		;;
 		r)
 		RESET_BOARD="yes"
+		;;
+		n)
+		ERASE_ALL="no"
 		;;
 		s)
 		SKIP_USB_CHECK="yes"
@@ -174,14 +182,25 @@ else
 		else
 			RESET_BOARD=
 		fi
-		$FLASH_TOOL --img=$IMAGE --parts=all --wipe --soc=$SOC ${RESET_BOARD} ${DEBUG}
+		if [ "$ERASE_ALL" == "yes" ]; then
+			WIPE_OPTION="--wipe"
+		else
+			WIPE_OPTION=
+		fi
+
+		$FLASH_TOOL --img=$IMAGE --parts=all ${WIPE_OPTION} --soc=$SOC ${RESET_BOARD} ${DEBUG}
 	elif [ "$BOARD" == "VIM4" ] || [ "$BOARD" == "VIM1S" ]; then
 		if [ "$RESET_BOARD" == "yes" ]; then
 			RESET_BOARD="-r 1"
 		else
 			RESET_BOARD=
 		fi
-		$ADNL_TOOL -p $IMAGE ${RESET_BOARD}
+		if [ "$ERASE_ALL" == "yes" ]; then
+			ERASE_FLASH="-e 1"
+		else
+			ERASE_FLASH="-e 0"
+		fi
+		$ADNL_TOOL -p $IMAGE ${RESET_BOARD} ${ERASE_FLASH}
 	fi
 fi
 
