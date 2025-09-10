@@ -307,7 +307,7 @@ fi
 
 # Should we destroy the boot ?
 # ----------------------------
-if [[ "$parts" == "all" ]] || [[ "$parts" == "bootloader" ]] || [[ "$parts" == "" ]] || [[ "$parts" == "none" ]]; then
+if [[ "$SYSTEM" != "linux-arm" ]] && ([[ "$parts" == "all" ]] || [[ "$parts" == "bootloader" ]] || [[ "$parts" == "" ]] || [[ "$parts" == "none" ]]); then
    run_update bulkcmd "echo 12345"
    #run_update bulkcmd "low_power"
    if [[ $? = 0 ]]; then
@@ -450,7 +450,7 @@ if [ -e /etc/lsb-release ]; then
 	source /etc/lsb-release
 fi
 
-if [ $host_os = Linux ] && linux-version compare $DISTRIB_RELEASE ge 19.10; then
+if [ $host_os = Linux ] && [ -n "$DISTRIB_RELEASE" ] && linux-version compare $DISTRIB_RELEASE ge 19.10; then
 	platform_conf_name=`awk '/sub_type="platform"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
 	print_debug "platform_conf_name  = $platform_conf_name"
 	ddr_filename=`awk '/sub_type="DDR"/{gsub("file=","",$1); gsub(/"/,"",$1); print $1}' $tmp_dir/image.cfg`
