@@ -116,12 +116,12 @@ else
 	fi
 
 	if [ "$(uname -s)" = "Darwin" ] ; then
-		if ! ioreg -p IOUSB -l -x | grep idVendor | grep -q 2207 || ! ioreg -p IOUSB -l -x | grep idProduct | grep -q "330c\|350b"; then
+		if ! ioreg -p IOUSB -l -x | grep idVendor | grep -q 2207 || ! ioreg -p IOUSB -l -x | grep idProduct | grep -q "330c\|350b\|350e"; then
 			error_msg "You should put your board enter upgrade mode!"
 			exit -1
 		fi
 	else
-		if ! lsusb | grep -q -E "2207:330c|2207:350b" > /dev/null; then
+		if ! lsusb | grep -q -E "2207:330c|2207:350b|2207:350e" > /dev/null; then
 			error_msg "You should put your board enter upgrade mode!"
 			exit -1
 		fi
