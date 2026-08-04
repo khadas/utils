@@ -26,7 +26,7 @@ error_msg() {
 
 usage() {
 	echo -e "Usage:"
-	echo -e "emmc:   $0 -b <VIM1|VIM2|VIM3|VIM4> -i <path-to-image> [-n]"
+	echo -e "emmc:   $0 -b <VIM1|VIM2|VIM3|VIM4|VIM-5> -i <path-to-image> [-n]"
 	echo -e "sdcard: $0 -d </dev/sdX> -i <path-to-image>"
 	echo -e "\nOptions:"
 	echo -e "  -n    Do not erase the whole flash chip (default to erase)."
@@ -170,6 +170,9 @@ else
 	elif [ "$BOARD" == "VIM1S" ]; then
 		SOC="s4"
 		DISPLAY_BOARD="VIM1S"
+	elif [ "$BOARD" == "VIM-5" ]; then
+		SOC="a9"
+		DISPLAY_BOARD="VIM-5"
 	else
 		error_msg "Unsupported board: [$BOARD]"
 		exit -1
@@ -189,7 +192,7 @@ else
 		fi
 
 		$FLASH_TOOL --img=$IMAGE --parts=all ${WIPE_OPTION} --soc=$SOC ${RESET_BOARD} ${DEBUG}
-	elif [ "$BOARD" == "VIM4" ] || [ "$BOARD" == "VIM1S" ]; then
+	elif [ "$BOARD" == "VIM4" ] || [ "$BOARD" == "VIM1S" ] || [ "$BOARD" == "VIM-5" ]; then
 		if [ "$RESET_BOARD" == "yes" ]; then
 			RESET_BOARD="-r 1"
 		else
