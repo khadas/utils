@@ -9,6 +9,8 @@ if [ "$(uname -s)" = "Darwin" ]; then
 else
 	DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
 	DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
+	# Numeric form of the release for comparisons: 26.04 -> 2604, 18.10 -> 1810
+	DISTRIB_VER=$(awk -F. '{ printf "%d%02d", $1, $2 }' <<< "$DISTRIB_RELEASE")
 fi
 
 AML_FLASH_TOOL_DIR="$BASE/aml-flash-tool"
@@ -28,14 +30,15 @@ error_msg() {
 }
 
 setup_ubuntu_host() {
-	local hostdeps="libusb-dev git parted lib32z1 lib32stdc++6 libusb-0.1-4 libusb-1.0-0-dev libusb-1.0-0 ccache libncurses5 pv base-files linux-base xz-utils"
+	local hostdeps="libusb-dev git parted lib32z1 lib32stdc++6 libusb-0.1-4 libusb-1.0-0-dev libusb-1.0-0 ccache pv base-files linux-base xz-utils"
 	local deps=()
 	local installed=$(dpkg-query -W -f '${db:Status-Abbrev}|${binary:Package}\n' '*' 2>/dev/null | grep '^ii' | awk -F '|' '{print $2}' | cut -d ':' -f 1)
 
-	if [[ "$DISTRIB" == "Ubuntu" ]] && [[ "$DISTRIB_RELEASE" == "18.10" || "$DISTRIB_RELEASE" =~ "20" || "$DISTRIB_RELEASE" =~ "22" || "$DISTRIB_RELEASE" =~ "24" ]]; then
-		hostdeps="$hostdeps lib32ncurses6"
+	# ncurses5 was dropped after 18.04; 18.10 and newer carry the ncurses6 packages
+	if (( DISTRIB_VER >= 1810 )); then
+		hostdeps="$hostdeps libncurses6 lib32ncurses6"
 	else
-		hostdeps="$hostdeps lib32ncurses5"
+		hostdeps="$hostdeps libncurses5 lib32ncurses5"
 	fi
 
 	for packet in $hostdeps; do
