@@ -9,6 +9,8 @@ if [ "$(uname -s)" = "Darwin" ] ; then
 else
 	DISTRIB=$(cat /etc/lsb-release | grep "DISTRIB_ID" | awk -F "=" '{print $2}')
 	DISTRIB_RELEASE=$(cat /etc/lsb-release | grep "DISTRIB_RELEASE" | awk -F "=" '{print $2}')
+	# Numeric form of the release for comparisons: 26.04 -> 2604, 18.10 -> 1810
+	DISTRIB_VER=$(awk -F. '{ printf "%d%02d", $1, $2 }' <<< "$DISTRIB_RELEASE")
 fi
 
 KHADAS_TOOL="$BASE/tone-burn-tool"
@@ -51,7 +53,7 @@ fi
 if [ "$DISTRIB" != "macOS" ]; then
 	echo "Installing USB rules..."
 
-	if [[ "$IGNORE_CHECK" == "yes" || "$DISTRIB_RELEASE" =~ "16" || "$DISTRIB_RELEASE" =~ "18" || "$DISTRIB_RELEASE" =~ "20" || "$DISTRIB_RELEASE" =~ "22" || "$DISTRIB_RELEASE" =~ "24" ]]; then
+	if [[ "$IGNORE_CHECK" == "yes" ]] || (( DISTRIB_VER >= 1600 )); then
 		RULE="$RULES_DIR/80-tone-usb.rules"
 		sudo cp $RULE /etc/udev/rules.d
 	else
