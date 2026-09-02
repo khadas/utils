@@ -51,7 +51,12 @@ fi
 if [ "$DISTRIB" != "macOS" ]; then
 	echo "Installing USB rules..."
 
-	if [[ "$IGNORE_CHECK" == "yes" || "$DISTRIB_RELEASE" =~ "16" || "$DISTRIB_RELEASE" =~ "18" || "$DISTRIB_RELEASE" =~ "20" || "$DISTRIB_RELEASE" =~ "22" || "$DISTRIB_RELEASE" =~ "24" ]]; then
+	# Releases from 16.04 on all use the same rules file, so compare the
+	# version numerically instead of enumerating every release that ships.
+	DISTRIB_MAJOR=${DISTRIB_RELEASE%%.*}
+	[[ "$DISTRIB_MAJOR" =~ ^[0-9]+$ ]] || DISTRIB_MAJOR=0
+
+	if [[ "$IGNORE_CHECK" == "yes" || "$DISTRIB_MAJOR" -ge 16 ]]; then
 		RULE="$RULES_DIR/80-tone-usb.rules"
 		sudo cp $RULE /etc/udev/rules.d
 	else

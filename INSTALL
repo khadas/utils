@@ -27,16 +27,31 @@ error_msg() {
 	echo -e ${RED}Error:${RESET} $1
 }
 
+# Print the first of the given packages that this release actually provides.
+pick_package() {
+	local packet candidate
+	for packet in "$@"; do
+		# Note: awk, not "grep -q" -- an early-exiting reader would SIGPIPE
+		# apt-cache and trip the script's pipefail.
+		candidate=$(apt-cache policy "$packet" 2>/dev/null | awk '/Candidate:/ {print $2}')
+		if [ -n "$candidate" ] && [ "$candidate" != "(none)" ]; then
+			echo "$packet"
+			return 0
+		fi
+	done
+	return 1
+}
+
 setup_ubuntu_host() {
-	local hostdeps="libusb-dev git parted lib32z1 lib32stdc++6 libusb-0.1-4 libusb-1.0-0-dev libusb-1.0-0 ccache libncurses5 pv base-files linux-base xz-utils"
+	local hostdeps="libusb-dev git parted lib32z1 lib32stdc++6 libusb-0.1-4 libusb-1.0-0-dev libusb-1.0-0 ccache pv base-files linux-base xz-utils"
 	local deps=()
 	local installed=$(dpkg-query -W -f '${db:Status-Abbrev}|${binary:Package}\n' '*' 2>/dev/null | grep '^ii' | awk -F '|' '{print $2}' | cut -d ':' -f 1)
 
-	if [[ "$DISTRIB" == "Ubuntu" ]] && [[ "$DISTRIB_RELEASE" == "18.10" || "$DISTRIB_RELEASE" =~ "20" || "$DISTRIB_RELEASE" =~ "22" || "$DISTRIB_RELEASE" =~ "24" ]]; then
-		hostdeps="$hostdeps lib32ncurses6"
-	else
-		hostdeps="$hostdeps lib32ncurses5"
-	fi
+	# The ncurses ABI packages differ per release: only up to 18.04 ships the
+	# v5 flavour, and 25.10 onwards dropped it completely. Ask apt which one
+	# exists instead of matching release numbers.
+	hostdeps="$hostdeps $(pick_package libncurses5 libncurses6 || true)"
+	hostdeps="$hostdeps $(pick_package lib32ncurses5 lib32ncurses6 || true)"
 
 	for packet in $hostdeps; do
 		if ! grep -q -x -e "$packet" <<< "$installed"; then deps+=("$packet"); fi
