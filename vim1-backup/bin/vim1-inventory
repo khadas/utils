@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+# shellcheck source=../lib/vim1-common.sh
+. "$SCRIPT_DIR/../lib/vim1-common.sh"
+umask 077
+
+usage() {
+  cat <<'EOF'
+Usage: vim1-inventory [--output DIR]
+
+Creates a privacy-minimized, read-only inventory on the Mac. It does not save
+the ADB serial, full kernel command line, MAC addresses, Android IDs, userdata,
+or any raw partition content.
+EOF
+}
+
+output=
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --output)
+      [ "$#" -ge 2 ] || vim1_die '--output requires a directory'
+      output=$2
+      shift 2
+      ;;
+    -h|--help) usage; exit 0 ;;
+    *) usage >&2; vim1_die "unknown argument: $1" ;;
+  esac
+done
+
+vim1_require_adb_device
+vim1_require_su0
+vim1_validate_target
+
+if [ -z "$output" ]; then
+  output="$VIM1_TOOLKIT_ROOT/artifacts/inventory/$(date -u +%Y%m%dT%H%M%SZ)"
+fi
+mkdir -p -- "$(dirname -- "$output")"
+mkdir -m 700 -- "$output" || vim1_die "cannot create a new output directory: $output"
+
+summary="$output/summary.txt"
+{
+  printf 'schema=vim1-read-only-inventory-v1\n'
+  printf 'captured_utc=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  printf 'target=Khadas VIM1 Pro PCB v1.2\n'
+  printf 'soc=Amlogic S905X GXL\n'
+  printf 'ram_nominal_mib=2048\n'
+  printf 'emmc_nominal_gb=16\n'
+  printf 'emmc_observed_bytes=%s\n' "$(vim1_su0_text 'blockdev --getsize64 /dev/block/mmcblk0' 2>/dev/null | tail -n 1)"
+  printf 'android_device=%s\n' "$(vim1_property ro.product.device)"
+  printf 'android_model=%s\n' "$(vim1_property ro.product.model)"
+  printf 'android_release=%s\n' "$(vim1_property ro.build.version.release)"
+  printf 'android_build_id=%s\n' "$(vim1_property ro.build.id)"
+  printf 'kernel_release=%s\n' "$(vim1_adb_shell 'uname -r' 2>/dev/null | vim1_trim_cr | tail -n 1)"
+  printf 'kernel_machine=%s\n' "$(vim1_adb_shell 'uname -m' 2>/dev/null | vim1_trim_cr | tail -n 1)"
+  printf 'device_tree_model=%s\n' "$(vim1_dt_text model)"
+  printf 'amlogic_dt_id=%s\n' "$(vim1_dt_text amlogic-dt-id)"
+  printf 'hwver=VIM1.V12\n'
+  printf 'adb_authorized=yes\n'
+  printf 'su0_available=yes\n'
+  printf 'device_identifier_saved=no\n'
+} > "$summary"
+chmod 600 "$summary"
+
+partitions="$output/critical-partitions.tsv"
+printf 'partition\tdevice\texpected_bytes\tobserved_bytes\n' > "$partitions"
+while IFS="$(printf '\t')" read -r part expected <&9; do
+  actual=$(vim1_remote_block_bytes "$part")
+  printf '%s\t/dev/block/%s\t%s\t%s\n' "$part" "$part" "$expected" "$actual" >> "$partitions"
+done 9<<EOF
+$(vim1_critical_layout)
+EOF
+chmod 600 "$partitions"
+
+cat > "$output/README.txt" <<'EOF'
+This directory contains metadata only. No partition image or userdata was read.
+The device identifier, MAC addresses, Android IDs, and full cmdline are omitted.
+EOF
+chmod 600 "$output/README.txt"
+
+printf 'Inventory saved: %s\n' "$output"

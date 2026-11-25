@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+# shellcheck source=../lib/vim1-common.sh
+. "$SCRIPT_DIR/../lib/vim1-common.sh"
+umask 077
+
+usage() {
+  cat <<'EOF'
+Usage:
+  vim1-backup-critical --dry-run
+  vim1-backup-critical --confirm-read-only [--output DIR]
+
+Reads the fixed, small critical-partition allowlist and writes image files only
+to the Mac. It never writes to or reboots the board. It never reads cache,
+vendor, odm, system, product, or userdata/data.
+EOF
+}
+
+confirm=no
+dry_run=no
+output=
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --confirm-read-only) confirm=yes; shift ;;
+    --dry-run) dry_run=yes; shift ;;
+    --output)
+      [ "$#" -ge 2 ] || vim1_die '--output requires a directory'
+      output=$2
+      shift 2
+      ;;
+    -h|--help) usage; exit 0 ;;
+    *) usage >&2; vim1_die "unknown argument: $1" ;;
+  esac
+done
+
+[ "$dry_run" = yes ] || [ "$confirm" = yes ] || {
+  usage >&2
+  vim1_die 'explicit --confirm-read-only is required'
+}
+
+vim1_require_adb_device
+vim1_require_su0
+vim1_validate_target
+
+if [ "$dry_run" = yes ]; then
+  printf 'Validated exact VIM1.V12 target and critical layout.\n'
+  printf 'Would read these partitions to Mac-hosted files:\n'
+  vim1_critical_layout | awk -F '\t' '{printf "  %-12s %10d bytes\n", $1, $2}'
+  printf 'Excluded unconditionally: cache vendor odm system product data userdata\n'
+  printf 'No partition content was read. No device write or reboot was requested.\n'
+  exit 0
+fi
+
+if [ -z "$output" ]; then
+  output="$VIM1_TOOLKIT_ROOT/backups/vim1-v12-$(date -u +%Y%m%dT%H%M%SZ)"
+fi
+mkdir -p -- "$(dirname -- "$output")"
+mkdir -m 700 -- "$output" || vim1_die "cannot create a new output directory: $output"
+
+manifest="$output/MANIFEST.tsv.partial"
+{
+  printf '# schema=vim1-critical-backup-v1\n'
+  printf '# captured_utc=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  printf '# target=Khadas VIM1 Pro PCB v1.2\n'
+  printf '# device_identifier_saved=no\n'
+  printf '# columns=partition\tdevice\texpected_bytes\tcaptured_bytes\tlocal_sha256\tdevice_sha256\n'
+} > "$manifest"
+chmod 600 "$manifest"
+
+vim1_info "Backing up critical partitions to: $output"
+# Keep the allowlist on fd 3. Several adb subcommands may read fd 0 even when
+# they do not logically need host input; using the loop's stdin here would let
+# the first adb call drain the remaining partition rows.
+while IFS="$(printf '\t')" read -r part expected <&3; do
+  vim1_is_critical_partition "$part" || vim1_die "internal allowlist failure: $part"
+  actual=$(vim1_remote_block_bytes "$part")
+  [ "$actual" = "$expected" ] || vim1_die "size changed for $part; refusing to read"
+
+  image_path="$output/$part.img"
+  partial="$image_path.partial"
+  vim1_info "  reading $part ($expected bytes)"
+
+  # dd diagnostics must be redirected on-device; otherwise Android dd can
+  # contaminate the binary stdout stream emitted by adb exec-out.
+  # adb may read its own stdin even for exec-out. Detach it from this loop's
+  # here-document or the first partition read can consume the remaining
+  # allowlist rows and silently truncate the backup set.
+  "$ADB_BIN" exec-out "su 0 sh -c 'dd if=/dev/block/$part bs=1048576 2>/dev/null'" \
+    </dev/null > "$partial" || {
+    rm -f "$partial"
+    vim1_die "read failed for /dev/block/$part"
+  }
+  chmod 600 "$partial"
+
+  captured=$(vim1_file_bytes "$partial")
+  [ "$captured" = "$expected" ] || {
+    rm -f "$partial"
+    vim1_die "short/long read for $part: expected $expected bytes, got $captured"
+  }
+
+  local_hash=$(vim1_sha256_file "$partial")
+  device_hash=$(vim1_remote_sha256 "$part")
+  [ "$local_hash" = "$device_hash" ] || {
+    rm -f "$partial"
+    vim1_die "SHA-256 mismatch for $part; partial file removed"
+  }
+
+  mv "$partial" "$image_path"
+  printf '%s\t/dev/block/%s\t%s\t%s\t%s\t%s\n' \
+    "$part" "$part" "$expected" "$captured" "$local_hash" "$device_hash" >> "$manifest"
+done 3<<EOF
+$(vim1_critical_layout)
+EOF
+
+mv "$manifest" "$output/MANIFEST.tsv"
+"$SCRIPT_DIR/vim1-verify-backup" "$output"
+vim1_info 'PASS: every host image matched both expected size and live-device SHA-256.'
+vim1_info 'Keep at least two encrypted/offline copies before any future eMMC write.'

@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+# shellcheck source=../lib/vim1-common.sh
+. "$SCRIPT_DIR/../lib/vim1-common.sh"
+umask 077
+
+printf 'Khadas VIM1 host doctor (read-only)\n'
+
+case "$(uname -s)" in
+  Darwin)
+    printf '  host: macOS %s\n' "$(sw_vers -productVersion 2>/dev/null || printf unknown)"
+    # Inspect only vendor/product lines. Never print or save the USB serial.
+    if system_profiler SPUSBDataType 2>/dev/null | awk '
+      /Product ID: 0x4e40/ {candidate=1; next}
+      candidate && /Product ID:/ {candidate=0}
+      candidate && /Vendor ID: 0x18d1/ {found=1}
+      END {exit !found}
+    '; then
+      printf '  usb descriptor: 18d1:4e40 (expected Android ADB mode)\n'
+    else
+      vim1_warn 'could not independently confirm USB 18d1:4e40; continuing with the stricter ADB target gate'
+    fi
+    ;;
+  *) vim1_warn 'this toolkit is designed and tested for macOS hosts' ;;
+esac
+
+vim1_need_command "$ADB_BIN"
+printf '  adb: %s\n' "$("$ADB_BIN" version 2>/dev/null | sed -n '1p')"
+
+if command -v sha256sum >/dev/null 2>&1; then
+  printf '  sha256: sha256sum\n'
+elif command -v shasum >/dev/null 2>&1; then
+  printf '  sha256: shasum -a 256\n'
+else
+  vim1_die 'need sha256sum or shasum'
+fi
+
+vim1_require_adb_device
+printf '  adb transport: authorized (identifier intentionally omitted)\n'
+
+vim1_require_su0
+printf '  raw read access: su 0 available\n'
+
+vim1_validate_target
+printf '  target: Khadas VIM1 Pro / PCB v1.2 / nominal 16 GB eMMC\n'
+printf '  layout: all 14 critical partition names and sizes match\n'
+printf 'PASS: host and attached target satisfy backup prerequisites.\n'
