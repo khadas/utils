@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+# shellcheck source=../lib/vim1-common.sh
+. "$SCRIPT_DIR/../lib/vim1-common.sh"
+umask 077
+
+usage() {
+  cat <<'EOF'
+Usage: vim1-verify-backup [--with-device] BACKUP_DIR
+
+Default verification is offline and reads only Mac-hosted files. --with-device
+also re-hashes the current live partitions (read-only); mutable partitions may
+legitimately differ from an older snapshot.
+EOF
+}
+
+with_device=no
+if [ "${1:-}" = -h ] || [ "${1:-}" = --help ]; then
+  usage
+  exit 0
+fi
+if [ "${1:-}" = --with-device ]; then
+  with_device=yes
+  shift
+fi
+[ "$#" -eq 1 ] || { usage >&2; exit 2; }
+dir=$1
+manifest="$dir/MANIFEST.tsv"
+[ -f "$manifest" ] || vim1_die "manifest not found: $manifest"
+
+if [ "$with_device" = yes ]; then
+  vim1_require_adb_device
+  vim1_require_su0
+  vim1_validate_target
+fi
+
+seen_file=$(mktemp "${TMPDIR:-/tmp}/vim1-verify.XXXXXX")
+trap 'rm -f "$seen_file"' EXIT HUP INT TERM
+count=0
+
+while IFS="$(printf '\t')" read -r part device expected captured local_hash device_hash extra <&9; do
+  case "$part" in
+    ''|'#'*) continue ;;
+  esac
+  [ -z "${extra:-}" ] || vim1_die "malformed manifest row for $part"
+  vim1_is_critical_partition "$part" || vim1_die "manifest contains non-allowlisted partition: $part"
+  [ "$device" = "/dev/block/$part" ] || vim1_die "unexpected device path in manifest for $part"
+  case "$expected:$captured" in
+    *[!0-9:]*|:*) vim1_die "invalid byte count in manifest for $part" ;;
+  esac
+  expected_layout=$(vim1_critical_layout | awk -F '\t' -v p="$part" '$1 == p {print $2}')
+  [ "$expected" = "$expected_layout" ] || vim1_die "unexpected expected size for $part"
+  [ "$captured" = "$expected" ] || vim1_die "captured byte count differs for $part"
+  vim1_is_sha256 "$local_hash" || vim1_die "invalid local SHA-256 in manifest for $part"
+  vim1_is_sha256 "$device_hash" || vim1_die "invalid device SHA-256 in manifest for $part"
+  [ "$local_hash" = "$device_hash" ] || vim1_die "recorded host/device hashes differ for $part"
+  grep -qx "$part" "$seen_file" 2>/dev/null && vim1_die "duplicate manifest row: $part"
+  printf '%s\n' "$part" >> "$seen_file"
+
+  image_path="$dir/$part.img"
+  [ -f "$image_path" ] || vim1_die "image missing: $image_path"
+  actual_bytes=$(vim1_file_bytes "$image_path")
+  [ "$actual_bytes" = "$expected" ] || vim1_die "file size mismatch: $part.img"
+  actual_hash=$(vim1_sha256_file "$image_path")
+  [ "$actual_hash" = "$local_hash" ] || vim1_die "local SHA-256 mismatch: $part.img"
+
+  if [ "$with_device" = yes ]; then
+    live_hash=$(vim1_remote_sha256 "$part")
+    [ "$live_hash" = "$device_hash" ] || vim1_die "live device differs from snapshot: $part"
+  fi
+  count=$((count + 1))
+done 9< "$manifest"
+
+[ "$count" -eq 14 ] || vim1_die "manifest is incomplete: expected 14 partitions, found $count"
+
+while IFS="$(printf '\t')" read -r required _; do
+  grep -qx "$required" "$seen_file" || vim1_die "manifest is missing partition: $required"
+done <<EOF
+$(vim1_critical_layout)
+EOF
+
+if [ "$with_device" = yes ]; then
+  printf 'PASS: 14 files match the manifest and the currently attached device.\n'
+else
+  printf 'PASS: 14 files match recorded sizes and SHA-256 hashes (offline verification).\n'
+fi

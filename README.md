@@ -4,6 +4,7 @@ Utils/Tools for development
 * [aml-flash-tool](https://github.com/khadas/utils/tree/master/aml-flash-tool) is Amlogic platform burning tool on Ubuntu/macOS.
 * [rk-flash-tool](https://github.com/khadas/utils/tree/master/rk-flash-tool) is Rockchip platform burning tool on Ubuntu/macOS.
 * [tone-dfu-tool](https://github.com/khadas/utils/tree/master/tone-dfu-tool) is Khadas Tone dfu tool on Ubuntu/macOS.
+* [vim1-backup](vim1-backup/) captures and verifies critical partitions on the VIM1 Pro V1.2 running stock Android 9.
 
 About usage of the burning tool please refer to the following documentation.
 
